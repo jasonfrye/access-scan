@@ -36,7 +36,7 @@ class ScanModelTest extends TestCase
         $casts = $scan->getCasts();
 
         $this->assertEquals('integer', $casts['pages_scanned']);
-        $this->assertEquals('decimal:2', $casts['score']);
+        $this->assertEquals('float', $casts['score']); // float for JSON serialization
         $this->assertEquals('datetime', $casts['started_at']);
     }
 
