@@ -92,6 +92,47 @@ class NotificationService
     }
 
     /**
+     * Send first issue fix guide.
+     */
+    public function sendFirstIssueFixEmail(Scan $scan, array $topIssues = []): void
+    {
+        $user = $scan->user;
+
+        if (!$user || !$user->email) {
+            return;
+        }
+
+        // If no specific issues provided, get top errors from the scan
+        if (empty($topIssues) && $scan->issues()->exists()) {
+            $topIssues = $scan->issues()
+                ->where('type', 'error')
+                ->limit(3)
+                ->get()
+                ->map(fn($issue) => [
+                    'type' => $issue->wcag_reference ?? 'Issue',
+                    'message' => $issue->message,
+                    'code' => $issue->code,
+                ])
+                ->toArray();
+        }
+
+        try {
+            Mail::to($user->email)->send(new \App\Mail\FirstIssueFixMail($user, $scan, $topIssues));
+
+            Log::info('First issue fix email sent', [
+                'scan_id' => $scan->id,
+                'user_id' => $user->id,
+                'issues_count' => count($topIssues),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send first issue fix email', [
+                'scan_id' => $scan->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
      * Send welcome email to new user.
      */
     public function sendWelcomeEmail(User $user): void
