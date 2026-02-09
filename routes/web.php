@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ScanController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,9 +17,11 @@ Route::post('/scan/{scan}/email', [ScanController::class, 'captureEmail'])->name
 Route::get('/scan/{scan}/status', [ScanController::class, 'status'])->name('scan.status');
 Route::post('/scan/{scan}/cancel', [ScanController::class, 'cancel'])->name('scan.cancel');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/scan', [DashboardController::class, 'storeScan'])->name('dashboard.scan.store');
+    Route::get('/dashboard/scan/{scan}', [DashboardController::class, 'showScan'])->name('dashboard.scan');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
