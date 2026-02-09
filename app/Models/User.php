@@ -93,4 +93,28 @@ class User extends Authenticatable
     {
         $this->update(['scan_count' => 0]);
     }
+
+    /**
+     * Get the scan limit based on plan.
+     */
+    public function getScanLimit(): int
+    {
+        return match ($this->plan) {
+            'monthly' => 50,
+            'lifetime' => 100,
+            default => $this->scan_limit ?? 5, // Free plan default
+        };
+    }
+
+    /**
+     * Get the max pages per scan based on plan.
+     */
+    public function getMaxPagesPerScan(): int
+    {
+        return match ($this->plan) {
+            'monthly' => 100,
+            'lifetime' => 500,
+            default => 5, // Free plan limited to 5 pages
+        };
+    }
 }

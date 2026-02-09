@@ -22,6 +22,11 @@ class ScannerService
     protected int $maxPages = 100;
 
     /**
+     * Link crawler instance.
+     */
+    protected ?LinkCrawler $crawler = null;
+
+    /**
      * Run a single-page accessibility scan.
      */
     public function scanPage(string $url): array
@@ -106,25 +111,109 @@ class ScannerService
         $url = $scan->url;
         $pages = [];
 
-        // For now, just scan the single URL
-        // TODO: Implement multi-page crawling
-        $result = $this->scanPage($url);
+        // Determine how many pages to scan based on scan type and plan
+        $maxPages = $this->determineMaxPages($scan);
+        
+        // For single-page scans, just scan the main URL
+        if ($maxPages === 1) {
+            $result = $this->scanPage($url);
+            $page = $this->storePageResult($scan, $url, $result);
+            $pages[] = $page;
 
-        $page = $this->storePageResult($scan, $url, $result);
-        $pages[] = $page;
+            foreach ($result['issues'] ?? [] as $issue) {
+                $this->storeIssue($page, $issue);
+            }
+            
+            return $pages;
+        }
 
-        // Store individual issues
-        foreach ($result['issues'] ?? [] as $issue) {
-            $this->storeIssue($page, $issue);
+        // For multi-page scans, crawl the site first
+        $crawler = $this->getCrawler();
+        $crawler->setMaxPages($maxPages);
+        $crawler->setMaxDepth(3); // Crawl up to 3 levels deep
+        
+        $crawlResult = $crawler->crawl($url);
+
+        Log::info('Crawl completed', [
+            'scan_id' => $scan->id,
+            'pages_found' => $crawlResult['total_pages'],
+        ]);
+
+        // Scan each discovered page
+        foreach ($crawlResult['pages'] as $pageInfo) {
+            try {
+                $result = $this->scanPage($pageInfo['url']);
+                
+                $page = $this->storePageResult($scan, $pageInfo['url'], $result, [
+                    'title' => $pageInfo['title'] ?? null,
+                ]);
+
+                foreach ($result['issues'] ?? [] as $issue) {
+                    $this->storeIssue($page, $issue);
+                }
+
+                $pages[] = $page;
+
+            } catch (\Exception $e) {
+                Log::warning('Failed to scan page', [
+                    'url' => $pageInfo['url'],
+                    'error' => $e->getMessage(),
+                ]);
+                
+                // Store failed page
+                $page = ScanPage::create([
+                    'scan_id' => $scan->id,
+                    'url' => $pageInfo['url'],
+                    'status' => 'failed',
+                    'issues_count' => 0,
+                    'errors_count' => 0,
+                    'warnings_count' => 0,
+                    'notices_count' => 0,
+                    'http_status' => 500,
+                ]);
+                $pages[] = $page;
+            }
         }
 
         return $pages;
     }
 
     /**
+     * Determine maximum pages to scan based on scan type and user plan.
+     */
+    protected function determineMaxPages(Scan $scan): int
+    {
+        // Single-page scans always scan 1 page
+        if ($scan->type === 'single') {
+            return 1;
+        }
+
+        // Full scans use the user's plan limit
+        $user = $scan->user;
+        if ($user) {
+            return $user->getScanLimit();
+        }
+
+        // Guest scans get a limited number of pages
+        return 5;
+    }
+
+    /**
+     * Get or create the link crawler.
+     */
+    protected function getCrawler(): LinkCrawler
+    {
+        if ($this->crawler === null) {
+            $this->crawler = new LinkCrawler();
+        }
+        
+        return $this->crawler;
+    }
+
+    /**
      * Store a page result in the database.
      */
-    protected function storePageResult(Scan $scan, string $url, array $result): ScanPage
+    protected function storePageResult(Scan $scan, string $url, array $result, array $metadata = []): ScanPage
     {
         return ScanPage::create([
             'scan_id' => $scan->id,
@@ -134,8 +223,8 @@ class ScannerService
             'errors_count' => $result['counts']['error'] ?? 0,
             'warnings_count' => $result['counts']['warning'] ?? 0,
             'notices_count' => $result['counts']['notice'] ?? 0,
-            'page_title' => $result['document']['title'] ?? null,
-            'http_status' => 200,
+            'page_title' => $result['document']['title'] ?? $metadata['title'] ?? null,
+            'http_status' => $metadata['http_status'] ?? 200,
         ]);
     }
 

@@ -1,11 +1,19 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ScanController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('home');
+
+Route::get('/scan', [ScanController::class, 'index'])->name('scan.index');
+Route::post('/scan', [ScanController::class, 'store'])->name('scans.store');
+Route::get('/scan/{scan}', [ScanController::class, 'results'])->name('scan.results');
+Route::post('/scan/{scan}/email', [ScanController::class, 'captureEmail'])->name('scan.email');
+Route::get('/scan/{scan}/status', [ScanController::class, 'status'])->name('scan.status');
+Route::post('/scan/{scan}/cancel', [ScanController::class, 'cancel'])->name('scan.cancel');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
