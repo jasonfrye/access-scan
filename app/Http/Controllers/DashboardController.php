@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Scan;
+use App\Models\ScanSchedule;
 use App\Jobs\RunScanJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,9 +38,75 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $scheduledScans = $user->scheduledScans()
+            ->active()
+            ->orderBy('next_run_at', 'asc')
+            ->take(5)
+            ->get();
+
         $trendData = $this->getTrendData($user);
 
-        return view('dashboard', compact('scans', 'stats', 'recentScans', 'trendData'));
+        return view('dashboard', compact('scans', 'stats', 'recentScans', 'scheduledScans', 'trendData'));
+    }
+
+    /**
+     * Store a new scheduled scan.
+     */
+    public function storeScheduledScan(Request $request)
+    {
+        $request->validate([
+            'url' => 'required|url|max:2048',
+            'frequency' => 'required|in:daily,weekly,monthly',
+        ]);
+
+        $user = Auth::user();
+
+        $schedule = ScanSchedule::create([
+            'user_id' => $user->id,
+            'url' => $request->input('url'),
+            'frequency' => $request->input('frequency'),
+            'next_run_at' => now()->addHour(), // First run in 1 hour
+            'is_active' => true,
+            'notify_on_regression' => true,
+        ]);
+
+        Log::info('Scheduled scan created', [
+            'schedule_id' => $schedule->id,
+            'user_id' => $user->id,
+            'url' => $schedule->url,
+            'frequency' => $schedule->frequency,
+        ]);
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Scheduled scan created! First run in 1 hour.');
+    }
+
+    /**
+     * Toggle a scheduled scan active status.
+     */
+    public function toggleScheduledScan(Request $request, ScanSchedule $schedule)
+    {
+        $this->authorize('update', $schedule);
+
+        $schedule->update(['is_active' => !$schedule->is_active]);
+
+        $status = $schedule->is_active ? 'enabled' : 'paused';
+
+        return redirect()->route('dashboard')
+            ->with('success', "Scheduled scan {$status}.");
+    }
+
+    /**
+     * Delete a scheduled scan.
+     */
+    public function destroyScheduledScan(Request $request, ScanSchedule $schedule)
+    {
+        $this->authorize('delete', $schedule);
+
+        $schedule->delete();
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Scheduled scan deleted.');
     }
 
     /**

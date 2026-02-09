@@ -201,6 +201,62 @@
                     </div>
                 @endif
 
+                <!-- Scheduled Scans -->
+                @if(isset($scheduledScans) && $scheduledScans->count() > 0)
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-gray-900">Scheduled Scans</h3>
+                            <button x-data @click="$dispatch('open-modal', 'add-scheduled')" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                                + Add
+                            </button>
+                        </div>
+                        <div class="space-y-3">
+                            @foreach($scheduledScans as $schedule)
+                                <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-medium text-gray-900 truncate">{{ parse_url($schedule->url, PHP_URL_HOST) }}</p>
+                                        <p class="text-xs text-gray-500 capitalize">{{ $schedule->frequency }} • {{ $schedule->next_run_at->diffForHumans() }}</p>
+                                    </div>
+                                    <form action="{{ route('dashboard.scheduled.toggle', $schedule) }}" method="POST" class="flex items-center gap-2">
+                                        @csrf
+                                        @method('POST')
+                                        <button type="submit" class="p-1 {{ $schedule->is_active ? 'text-green-600' : 'text-gray-400' }}" title="{{ $schedule->is_active ? 'Active' : 'Paused' }}">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                @if($schedule->is_active)
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                @else
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                @endif
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            @endforeach
+                        </div>
+                        @if($scheduledScans->count() >= 5)
+                            <div class="text-center text-sm text-gray-500 pt-2">
+                                <a href="#" class="text-indigo-600 hover:text-indigo-800">View all →</a>
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <!-- Add Scheduled Scan CTA -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="text-center">
+                            <div class="w-12 h-12 mx-auto bg-indigo-100 rounded-xl flex items-center justify-center mb-3">
+                                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-bold text-gray-900 mb-1">Schedule Scans</h3>
+                            <p class="text-sm text-gray-500 mb-3">Automatically scan your site on a schedule</p>
+                            <button x-data @click="$dispatch('open-modal', 'add-scheduled')" class="w-full py-2 px-4 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors text-sm">
+                                Add Schedule
+                            </button>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Account Info -->
                 <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4">Account</h3>
@@ -227,6 +283,89 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Scheduled Scan Modal -->
+<div x-data="{ open: false }" 
+     @open-modal.window="open = ($event.detail === 'add-scheduled'); if(open) $nextTick(() => $refs.url.focus())"
+     x-show="open"
+     class="fixed inset-0 z-50 overflow-y-auto"
+     style="display: none;"
+     x-transition.opacity>
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div x-show="open" 
+             @click="open = false"
+             class="fixed inset-0 bg-gray-900/50 transition-opacity"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"></div>
+
+        <div class="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6"
+             x-show="open"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+            
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Schedule Automatic Scans</h3>
+                <button @click="open = false" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form action="{{ route('dashboard.scheduled.store') }}" method="POST">
+                @csrf
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="url" class="block text-sm font-medium text-gray-700 mb-2">Website URL</label>
+                        <input 
+                            type="url" 
+                            name="url" 
+                            id="url"
+                            x-ref="url"
+                            placeholder="https://example.com"
+                            required
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label for="frequency" class="block text-sm font-medium text-gray-700 mb-2">Scan Frequency</label>
+                        <select name="frequency" id="frequency" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="daily">Daily</option>
+                            <option value="weekly" selected>Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                        <input type="checkbox" name="notify_on_regression" id="notify_on_regression" value="1" checked class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+                        <label for="notify_on_regression" class="text-sm text-gray-700">
+                            Notify me if score drops
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" @click="open = false" class="flex-1 py-3 px-4 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 py-3 px-4 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors">
+                        Create Schedule
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

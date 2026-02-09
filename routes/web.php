@@ -21,6 +21,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/scan', [DashboardController::class, 'storeScan'])->name('dashboard.scan.store');
     Route::get('/dashboard/scan/{scan}', [DashboardController::class, 'showScan'])->name('dashboard.scan');
+    
+    // Scheduled scans
+    Route::post('/dashboard/scheduled-scans', [DashboardController::class, 'storeScheduledScan'])->name('dashboard.scheduled.store');
+    Route::post('/dashboard/scheduled-scans/{schedule}/toggle', [DashboardController::class, 'toggleScheduledScan'])->name('dashboard.scheduled.toggle');
+    Route::delete('/dashboard/scheduled-scans/{schedule}', [DashboardController::class, 'destroyScheduledScan'])->name('dashboard.scheduled.destroy');
 });
 
 Route::middleware('auth')->group(function () {

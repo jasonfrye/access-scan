@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -52,6 +53,30 @@ class User extends Authenticatable
             'scan_limit' => 'integer',
             'trial_ends_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the user's scans.
+     */
+    public function scans(): HasMany
+    {
+        return $this->hasMany(Scan::class);
+    }
+
+    /**
+     * Get the user's scheduled scans.
+     */
+    public function scheduledScans(): HasMany
+    {
+        return $this->hasMany(ScanSchedule::class);
+    }
+
+    /**
+     * Get active scheduled scans.
+     */
+    public function activeScheduledScans(): HasMany
+    {
+        return $this->hasMany(ScanSchedule::class)->where('is_active', true);
     }
 
     /**
