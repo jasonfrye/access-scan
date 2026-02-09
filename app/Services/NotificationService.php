@@ -157,6 +157,40 @@ class NotificationService
     }
 
     /**
+     * Send plan benefit mail to highlight unused Pro features.
+     */
+    public function sendPlanBenefitEmail(User $user, array $unusedFeatures = []): void
+    {
+        if (!$user->email) {
+            return;
+        }
+
+        // Default unused features if none provided
+        if (empty($unusedFeatures)) {
+            $unusedFeatures = [
+                ['name' => 'Scheduled Scans', 'description' => 'Automatic weekly/monthly scans'],
+                ['name' => 'PDF Export', 'description' => 'Download detailed reports'],
+                ['name' => 'CSV Export', 'description' => 'Export issues to CSV'],
+                ['name' => 'Weekly Digest', 'description' => 'Monday progress summaries'],
+            ];
+        }
+
+        try {
+            Mail::to($user->email)->send(new \App\Mail\PlanBenefitMail($user, $unusedFeatures));
+
+            Log::info('Plan benefit email sent', [
+                'user_id' => $user->id,
+                'unused_features_count' => count($unusedFeatures),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send plan benefit email', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
      * Send welcome email to new user.
      */
     public function sendWelcomeEmail(User $user): void
