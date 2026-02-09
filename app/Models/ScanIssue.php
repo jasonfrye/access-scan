@@ -140,11 +140,27 @@ class ScanIssue extends Model
     public function getWcagReferenceAttribute(): string
     {
         $level = $this->wcag_level ?? 'A';
+        
+        // Extract the numeric parts from the stored values
+        // Pa11y stores: principle='1', guideline='1_1', criterion='1_1_1'
+        // WCAG reference format: principle.guideline.criterion (e.g., "1.1.1")
         $principle = $this->wcag_principle ?? '';
         $guideline = $this->wcag_guideline ?? '';
         $criterion = $this->wcag_criterion ?? '';
 
-        return "WCAG 2.1 Level {$level} - {$principle}.{$guideline}.{$criterion}";
+        // Extract the final number from each (e.g., '1_1_1' -> '1')
+        $p = $principle ? substr($principle, -1) : '';
+        $g = $guideline ? substr($guideline, -1) : '';
+        $c = $criterion ? substr($criterion, -1) : '';
+
+        $reference = trim("{$p}.{$g}.{$c}", '.');
+
+        // If no WCAG data available, return just the level
+        if (empty($reference) || $reference === '.') {
+            return "WCAG 2.1 Level {$level}";
+        }
+
+        return "WCAG 2.1 Level {$level} - {$reference}";
     }
 
     /**

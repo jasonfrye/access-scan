@@ -56,7 +56,7 @@ class RunScanJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(ScannerService $scanner, \App\Services\NotificationService $notifications): void
+    public function handle($scanner, $notifications): void
     {
         Log::info('Starting scan job', ['scan_id' => $this->scan->id]);
 

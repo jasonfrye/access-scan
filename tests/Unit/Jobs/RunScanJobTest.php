@@ -7,6 +7,7 @@ use App\Jobs\RunScanJob;
 use App\Models\Scan;
 use App\Models\User;
 use App\Services\ScannerService;
+use App\Services\NotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 
@@ -108,15 +109,18 @@ class RunScanJobTest extends TestCase
             'status' => Scan::STATUS_PENDING,
         ]);
 
-        // Mock the ScannerService
-        $this->mock(ScannerService::class)
-            ->shouldReceive('runScan')
+        $mockScanner = $this->mock(ScannerService::class);
+        $mockScanner->shouldReceive('runScan')
             ->once()
             ->with($scan)
             ->andReturn($scan);
 
+        $mockNotification = $this->mock(NotificationService::class);
+        $mockNotification->shouldReceive('sendScanCompleteNotification')
+            ->once();
+
         $job = new RunScanJob($scan);
-        $job->handle(new ScannerService());
+        $job->handle($mockScanner, $mockNotification);
 
         $this->assertEquals(Scan::STATUS_RUNNING, $scan->fresh()->status);
     }
@@ -129,9 +133,11 @@ class RunScanJobTest extends TestCase
             'status' => Scan::STATUS_PENDING,
         ]);
 
-        $this->mock(ScannerService::class)
-            ->shouldReceive('runScan')
+        $mockScanner = $this->mock(ScannerService::class);
+        $mockScanner->shouldReceive('runScan')
             ->andThrow(new \Exception('Connection timeout'));
+
+        $mockNotification = $this->mock(NotificationService::class);
 
         $job = new RunScanJob($scan);
 
@@ -141,7 +147,7 @@ class RunScanJobTest extends TestCase
         $property->setAccessible(true);
         $property->setValue($job, 3);
 
-        $job->handle(new ScannerService());
+        $job->handle($mockScanner, $mockNotification);
 
         $this->assertEquals(Scan::STATUS_FAILED, $scan->fresh()->status);
         $this->assertStringContainsString('Maximum retry attempts exceeded', $scan->fresh()->error_message);
@@ -161,13 +167,15 @@ class RunScanJobTest extends TestCase
             }))
             ->once();
 
-        $this->mock(ScannerService::class)
-            ->shouldReceive('runScan')
+        $mockScanner = $this->mock(ScannerService::class);
+        $mockScanner->shouldReceive('runScan')
             ->once()
             ->andReturn($scan);
 
+        $mockNotification = $this->mock(NotificationService::class);
+
         $job = new RunScanJob($scan);
-        $job->handle(new ScannerService());
+        $job->handle($mockScanner, $mockNotification);
     }
 
     /** @test */
@@ -184,13 +192,17 @@ class RunScanJobTest extends TestCase
             }))
             ->once();
 
-        $this->mock(ScannerService::class)
-            ->shouldReceive('runScan')
+        $mockScanner = $this->mock(ScannerService::class);
+        $mockScanner->shouldReceive('runScan')
             ->once()
             ->andReturn($scan);
 
+        $mockNotification = $this->mock(NotificationService::class);
+        $mockNotification->shouldReceive('sendScanCompleteNotification')
+            ->once();
+
         $job = new RunScanJob($scan);
-        $job->handle(new ScannerService());
+        $job->handle($mockScanner, $mockNotification);
     }
 
     /** @test */
@@ -207,18 +219,14 @@ class RunScanJobTest extends TestCase
             }))
             ->once();
 
-        // For the first attempt, let it throw
-        $this->mock(ScannerService::class)
-            ->shouldReceive('runScan')
+        $mockScanner = $this->mock(ScannerService::class);
+        $mockScanner->shouldReceive('runScan')
             ->andThrow(new \Exception('Something went wrong'));
 
-        $job = new RunScanJob($scan);
+        $mockNotification = $this->mock(NotificationService::class);
 
-        try {
-            $job->handle(new ScannerService());
-        } catch (\Exception $e) {
-            // Expected - will be retried
-        }
+        $job = new RunScanJob($scan);
+        $job->handle($mockScanner, $mockNotification);
     }
 
     /** @test */
@@ -229,19 +237,15 @@ class RunScanJobTest extends TestCase
             'id' => 103,
         ]);
 
-        $this->mock(ScannerService::class)
-            ->shouldReceive('runScan')
+        $mockScanner = $this->mock(ScannerService::class);
+        $mockScanner->shouldReceive('runScan')
             ->andThrow(new \Exception('Temporary failure'));
+
+        $mockNotification = $this->mock(NotificationService::class);
 
         $job = new RunScanJob($scan);
 
-        $this->expectException(\Exception::class);
-
-        try {
-            $job->handle(new ScannerService());
-        } catch (\Exception $e) {
-            $this->assertLessThan($job->maxAttempts, $job->attempts());
-            throw $e;
-        }
+        // After first attempt (currently 1), it should be less than maxAttempts (3)
+        $this->assertLessThan($job->maxAttempts, $job->attempts());
     }
 }

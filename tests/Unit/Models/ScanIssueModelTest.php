@@ -174,7 +174,7 @@ class ScanIssueModelTest extends TestCase
 
         $reference = $issue->wcag_reference;
 
-        $this->assertEquals('WCAG 2.1 Level AA - 1.1.1.1_1_1', $reference);
+        $this->assertEquals('WCAG 2.1 Level AA - 1.1.1', $reference);
     }
 
     /** @test */
@@ -189,7 +189,7 @@ class ScanIssueModelTest extends TestCase
 
         $reference = $issue->wcag_reference;
 
-        $this->assertEquals('WCAG 2.1 Level A - ..', $reference);
+        $this->assertEquals('WCAG 2.1 Level A', $reference);
     }
 
     /** @test */
