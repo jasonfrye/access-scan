@@ -164,9 +164,11 @@ class ScanController extends Controller
             ]);
         }
 
+        // Eager load issues for the view
+        $scan->load('issues');
+
         return view('scan.results', [
             'scan' => $scan,
-            'teaser' => true, // Show limited results for guests
         ]);
     }
 
