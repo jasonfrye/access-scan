@@ -56,7 +56,7 @@ class RunScanJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(ScannerService $scanner): void
+    public function handle(ScannerService $scanner, \App\Services\NotificationService $notifications): void
     {
         Log::info('Starting scan job', ['scan_id' => $this->scan->id]);
 
@@ -66,8 +66,13 @@ class RunScanJob implements ShouldQueue
 
             Log::info('Scan job completed successfully', ['scan_id' => $this->scan->id]);
 
-            // TODO: Dispatch notification event
-            // event(new ScanCompleted($this->scan));
+            // Send scan complete notification
+            $notifications->sendScanCompleteNotification($this->scan);
+
+            // Check for regression on scheduled scans
+            if ($this->scan->user && $this->scan->scan_type === Scan::TYPE_SCHEDULED) {
+                $this->checkForRegression($notifications);
+            }
         } catch (Throwable $e) {
             Log::error('Scan job failed', [
                 'scan_id' => $this->scan->id,
@@ -82,6 +87,39 @@ class RunScanJob implements ShouldQueue
 
             // Mark as failed after all retries exhausted
             $this->scan->markAsFailed('Maximum retry attempts exceeded: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Check for score regression compared to previous scan.
+     */
+    protected function checkForRegression(\App\Services\NotificationService $notifications): void
+    {
+        $user = $this->scan->user;
+
+        if (!$user) {
+            return;
+        }
+
+        // Get the previous scan for the same URL
+        $previousScan = $user->scans()
+            ->where('id', '!=', $this->scan->id)
+            ->where('url', 'like', '%' . parse_url($this->scan->url, PHP_URL_HOST) . '%')
+            ->completed()
+            ->latest('completed_at')
+            ->first();
+
+        if (!$previousScan) {
+            return;
+        }
+
+        $currentScore = $this->scan->score ?? 0;
+        $previousScore = $previousScan->score ?? 0;
+        $scoreDrop = $previousScore - $currentScore;
+
+        // Alert if score dropped by 10+ points
+        if ($scoreDrop >= 10) {
+            $notifications->sendRegressionAlert($user, $this->scan, $previousScan);
         }
     }
 
