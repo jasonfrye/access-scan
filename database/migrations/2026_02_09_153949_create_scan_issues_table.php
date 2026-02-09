@@ -21,8 +21,11 @@ return new class extends Migration
             $table->string('selector')->nullable(); // CSS selector for the element
             $table->string('wcag_principle')->nullable(); // Perceivable, Operable, Understandable, Robust
             $table->string('wcag_guideline')->nullable();
+            $table->string('wcag_criterion')->nullable(); // e.g., 1.1.1
             $table->string('wcag_level')->nullable(); // A, AA, AAA
+            $table->string('impact')->nullable(); // critical, serious, moderate, minor
             $table->text('recommendation')->nullable();
+            $table->string('help_url')->nullable();
             $table->boolean('is_fixed')->default(false);
             $table->boolean('is_ignored')->default(false);
             $table->timestamps();

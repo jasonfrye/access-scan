@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Scan extends Model
 {
@@ -75,9 +76,9 @@ class Scan extends Model
     /**
      * Get all issues found in this scan.
      */
-    public function issues(): HasMany
+    public function issues(): HasManyThrough
     {
-        return $this->hasMany(ScanIssue::class);
+        return $this->hasManyThrough(ScanIssue::class, ScanPage::class);
     }
 
     /**

@@ -63,6 +63,14 @@ class ScanIssue extends Model
     }
 
     /**
+     * Convenience method for page relationship.
+     */
+    public function scanPage(): BelongsTo
+    {
+        return $this->page();
+    }
+
+    /**
      * Scope for errors.
      */
     public function scopeErrors($query)
