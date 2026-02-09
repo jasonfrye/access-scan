@@ -1,0 +1,25 @@
+[Unit]
+Description=AccessScan Horizon Queue Worker
+After=network.target redis.target mysql.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+Restart=always
+RestartSec=10
+ExecStart=/usr/bin/php /var/www/access-scan/current/artisan horizon
+ExecStop=/usr/bin/php /var/www/access-scan/current/artisan horizon:terminate
+ExecReload=/bin/kill -HUP $MAINPID
+WorkingDirectory=/var/www/access-scan/current
+StandardOutput=append:/var/log/accessscan-worker.log
+StandardError=append:/var/log/accessscan-worker-error.log
+Environment="APP_ENV=production"
+Environment="APP_DEBUG=false"
+
+# Graceful shutdown
+KillMode=mixed
+TimeoutStopSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+# AccessScan Scheduled Tasks
+# Copy this file to: /etc/cron.d/accessscan
+# Or add to crontab: crontab -u www-data -e
+
+# Laravel Scheduler - runs every minute
+* * * * * www-data cd /var/www/access-scan/current && php artisan schedule:run >> /dev/null 2>&1
+
+# Laravel Queue Worker - managed by systemd (accessscan-worker.service)
+# No cron needed - use systemctl to manage:
+#   sudo systemctl status accessscan-worker
+#   sudo systemctl restart accessscan-worker

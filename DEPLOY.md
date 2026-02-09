@@ -92,7 +92,37 @@ php artisan migrate --force
 php artisan db:seed --class=PricingConfigSeeder
 ```
 
-## Manual Deployment
+## Deployment Automation
+
+### Automated Deploy Script
+Run `./deploy.sh production master` to deploy. The script:
+- Pulls latest code
+- Installs Composer & NPM dependencies
+- Runs migrations & seeds pricing config
+- Clears and optimizes caches
+- Restarts queue workers
+- Installs systemd service (if available)
+- Configures cron for scheduled tasks
+
+### Manual Service Setup
+If automated setup doesn't work, manually:
+
+```bash
+# Install systemd service
+sudo cp deployment/accessscan-worker.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable accessscan-worker
+sudo systemctl start accessscan-worker
+
+# Install cron
+echo "* * * * * www-data cd /var/www/access-scan/current && php artisan schedule:run >> /dev/null 2>&1" | sudo crontab -
+```
+
+### Deployment Files Location
+All deployment configuration files are in the `deployment/` directory:
+- `deployment/accessscan-worker.service` — Systemd service template
+- `deployment/cron.txt` — Cron configuration template
+- `deployment/README.md` — Setup instructions
 
 ### Prerequisites
 - PHP 8.2+
