@@ -66,6 +66,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/api-key/create', [ProfileController::class, 'createApiKey'])->name('profile.api-key.create');
+    Route::delete('/profile/api-key/revoke', [ProfileController::class, 'revokeApiKey'])->name('profile.api-key.revoke');
 });
+
+Route::get('/api/docs', function () {
+    return view('api.docs');
+})->name('api.docs');
 
 require __DIR__.'/auth.php';

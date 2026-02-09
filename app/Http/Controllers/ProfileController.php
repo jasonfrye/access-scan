@@ -57,4 +57,29 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+
+    /**
+     * Create a new API token for the user.
+     */
+    public function createApiKey(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $token = $user->createToken('API Access');
+
+        return Redirect::route('profile.edit')
+            ->with('status', 'api-key-created')
+            ->with('api_token', $token->plainTextToken);
+    }
+
+    /**
+     * Revoke all API tokens for the user.
+     */
+    public function revokeApiKey(Request $request): RedirectResponse
+    {
+        $request->user()->tokens()->delete();
+
+        return Redirect::route('profile.edit')
+            ->with('status', 'api-key-revoked');
+    }
 }
