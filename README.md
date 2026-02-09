@@ -1,59 +1,184 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# AccessScan — ADA/WCAG Compliance Checker
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://accessscan.app/icon.svg" width="120" alt="AccessScan Logo">
 </p>
 
-## About Laravel
+<p align="center">
+  <strong>Automated accessibility testing for small businesses</strong>
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+  <a href="https://accessscan.app">Website</a> •
+  <a href="https://accessscan.app/pricing">Pricing</a> •
+  <a href="https://accessscan.app/api/docs">API Docs</a>
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Overview
 
-## Learning Laravel
+AccessScan is a SaaS application that helps small businesses ensure their websites meet ADA/WCAG accessibility standards. Built with Laravel 12, Livewire 4, and Tailwind CSS 4.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Features
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- 🚀 **Instant Scanning** — Automated WCAG A/AA compliance checks using Pa11y
+- 📊 **Detailed Reports** — Executive summaries, issue breakdowns, and fix recommendations
+- 💳 **Freemium Model** — Free tier (5 scans/mo) + Pro ($29/mo) + Lifetime ($197)
+- 📈 **Scheduled Scans** — Daily, weekly, or monthly automated monitoring
+- 🔗 **API Access** — REST API for developers and integrations
+- 📤 **Export Options** — PDF, CSV, and JSON report downloads (Pro)
 
-## Laravel Sponsors
+### Tech Stack
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- **Backend:** Laravel 12, PHP 8.2+
+- **Frontend:** Livewire 4, Tailwind CSS 4
+- **Database:** MySQL 8.0+ or PostgreSQL
+- **Queue:** Laravel Horizon + Redis
+- **Billing:** Laravel Cashier (Stripe)
+- **Authentication:** Laravel Breeze + Sanctum (API)
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Quick Start
+
+### Requirements
+
+- PHP 8.2+
+- Composer 2+
+- Node.js 20+
+- MySQL 8.0+ or PostgreSQL
+- Redis 7+
+- Pa11y CLI: `npm install -g pa11y@6`
+
+### Installation
+
+```bash
+# Clone the repository
+git clone git@github.com:jasonfrye/access-scan.git
+cd access-scan
+
+# Install dependencies
+composer install
+npm ci
+
+# Setup environment
+cp .env.example .env
+php artisan key:generate
+
+# Configure your database and Stripe keys in .env
+
+# Run migrations
+php artisan migrate --seed
+
+# Build assets
+npm run build
+
+# Start the development server
+php artisan serve
+```
+
+Visit `http://localhost:8000` to see the application.
+
+---
+
+## Deployment
+
+### Laravel Forge (Recommended)
+
+See [DEPLOY.md](DEPLOY.md) for complete deployment instructions including:
+
+- One-click Forge setup
+- Environment variable configuration
+- Queue worker setup
+- Scheduled tasks
+- Post-deploy checklist
+
+### Quick Deploy
+
+```bash
+# Make deploy script executable
+chmod +x deploy.sh
+
+# Run deployment (defaults to production)
+./deploy.sh
+
+# Or specify environment and branch
+./deploy.sh production develop
+```
+
+---
+
+## API Documentation
+
+Full API documentation is available at: **https://accessscan.app/api/docs**
+
+### Quick API Example
+
+```bash
+# Create a scan
+curl -X POST https://accessscan.app/api/v1/scans \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com"}'
+
+# Check status
+curl https://accessscan.app/api/v1/scans/1/status \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Get results
+curl https://accessscan.app/api/v1/scans/1 \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+---
+
+## Pricing Plans
+
+| Feature | Free | Pro ($29/mo) | Lifetime ($197) |
+|---------|------|--------------|-----------------|
+| Scans/month | 5 | 50 | Unlimited |
+| Pages/scan | 5 | 100 | Unlimited |
+| Scheduled scans | ❌ | ✅ | ✅ |
+| PDF/CSV export | ❌ | ✅ | ✅ |
+| API access | ❌ | ❌ | ✅ |
+| White-label | ❌ | ❌ | ✅ |
+| Priority support | ❌ | ❌ | ✅ |
+
+---
+
+## Testing
+
+```bash
+# Run all tests
+php artisan test
+
+# Run specific test suite
+php artisan test --filter=ScanApiControllerTest
+```
+
+**Test Status:** 208 passing tests
+
+---
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is licensed under the MIT License.
+
+---
+
+## Support
+
+- 📧 Email: support@accessscan.app
+- 🐛 Issues: GitHub Issues
+- 📖 Docs: https://accessscan.app/docs
