@@ -1,22 +1,40 @@
 <?php
 
-use App\Http\Controllers\ScanController;
+use App\Http\Controllers\Api\V1\ScanApiController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| API Routes (v1)
 |--------------------------------------------------------------------------
 |
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group.
+| API Version 1 - Rate limited and authenticated
 |
 */
 
-Route::middleware('api')->group(function () {
-    // Guest scan endpoints
-    Route::post('/scans', [ScanController::class, 'store'])->name('api.scans.store');
-    Route::get('/scans/{scan}', [ScanController::class, 'show'])->name('api.scans.show');
-    Route::get('/scans/{scan}/status', [ScanController::class, 'status'])->name('api.scans.status');
+// API v1 group with rate limiting and authentication
+Route::prefix('v1')->middleware([
+    'throttle:api',
+    'auth:sanctum',
+])->group(function () {
+    // Scans
+    Route::get('/scans', [ScanApiController::class, 'index'])->name('api.v1.scans.index');
+    Route::post('/scans', [ScanApiController::class, 'store'])->name('api.v1.scans.store');
+    Route::get('/scans/{scan}', [ScanApiController::class, 'show'])->name('api.v1.scans.show');
+    Route::get('/scans/{scan}/status', [ScanApiController::class, 'status'])->name('api.v1.scans.status');
+});
+
+/*
+|--------------------------------------------------------------------------
+| API Routes (Legacy/Guest)
+|--------------------------------------------------------------------------
+|
+| Guest scan endpoints - rate limited by IP
+|
+*/
+
+Route::middleware('throttle:guest-scan')->group(function () {
+    Route::post('/scans', [ScanApiController::class, 'store'])->name('api.scans.store');
+    Route::get('/scans/{scan}', [ScanApiController::class, 'show'])->name('api.scans.show');
+    Route::get('/scans/{scan}/status', [ScanApiController::class, 'status'])->name('api.scans.status');
 });

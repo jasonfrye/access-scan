@@ -36,7 +36,7 @@ class Scan extends Model
         'errors_count' => 'integer',
         'warnings_count' => 'integer',
         'notices_count' => 'integer',
-        'score' => 'decimal:2',
+        'score' => 'float',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
         'expires_at' => 'datetime',
