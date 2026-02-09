@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Console\Scheduling\Schedule;
 use App\Http\Middleware\CheckPlanFeature;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -18,4 +19,23 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->create();
+    })
+    ->withSchedule(function (Schedule $schedule): void {
+        // Trial reminders - daily at 9am
+        $schedule->command('access-scan:send-trial-reminders --process-expired')
+            ->dailyAt('09:00')
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->appendOutputTo(storage_path('logs/trial-reminders.log'))
+            ->onSuccess(function () {
+                //
+            });
+
+        // Weekly digests - every Monday at 10am
+        $schedule->command('access-scan:send-weekly-digests')
+            ->weeklyOn(Schedule::MONDAY, '10:00')
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->appendOutputTo(storage_path('logs/weekly-digests.log'));
+    })
+    ->create();
