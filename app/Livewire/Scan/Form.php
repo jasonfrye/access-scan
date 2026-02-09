@@ -52,8 +52,14 @@ class Form extends Component
 
             if ($response->successful()) {
                 $this->scanId = $response->json()['scan_id'];
+                $redirectUrl = $response->json()['redirect_url'];
+                
+                // Dispatch event and redirect
                 $this->dispatch('scan-created', scanId: $this->scanId);
                 $this->dispatch('scan-started', scanId: $this->scanId);
+                
+                // Redirect to pending page
+                return $this->redirect($redirectUrl, navigate: true);
             } else {
                 $this->errorMessage = $response->json()['error'] ?? 'Failed to start scan. Please try again.';
             }

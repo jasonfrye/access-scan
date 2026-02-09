@@ -87,6 +87,7 @@ class ScanController extends Controller
             return response()->json([
                 'success' => true,
                 'scan_id' => $scan->id,
+                'redirect_url' => route('scan.pending', $scan),
                 'message' => 'Scan started. This may take a few minutes.',
             ]);
         } catch (\Exception $e) {
@@ -135,6 +136,20 @@ class ScanController extends Controller
                 'completed_at' => $scan->completed_at?->toIso8601String(),
                 'is_complete' => $scan->isCompleted(),
             ],
+        ]);
+    }
+
+    /**
+     * Display pending scan page.
+     */
+    public function pending(Scan $scan)
+    {
+        if ($scan->isCompleted()) {
+            return redirect()->route('scan.results', $scan);
+        }
+
+        return view('scan.pending', [
+            'scan' => $scan,
         ]);
     }
 

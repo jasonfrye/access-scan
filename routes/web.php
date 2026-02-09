@@ -10,6 +10,7 @@ Route::get('/', function () {
 
 Route::get('/scan', [ScanController::class, 'index'])->name('scan.index');
 Route::post('/scan', [ScanController::class, 'store'])->name('scans.store');
+Route::get('/scan/{scan}/pending', [ScanController::class, 'pending'])->name('scan.pending');
 Route::get('/scan/{scan}', [ScanController::class, 'results'])->name('scan.results');
 Route::post('/scan/{scan}/email', [ScanController::class, 'captureEmail'])->name('scan.email');
 Route::get('/scan/{scan}/status', [ScanController::class, 'status'])->name('scan.status');
