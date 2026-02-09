@@ -21,6 +21,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'stripe_id',
+        'plan',
+        'scan_count',
+        'scan_limit',
+        'trial_ends_at',
     ];
 
     /**
@@ -43,6 +48,49 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'scan_count' => 'integer',
+            'scan_limit' => 'integer',
+            'trial_ends_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the user's plan.
+     */
+    public function getPlanAttribute($value): string
+    {
+        return $value ?? 'free';
+    }
+
+    /**
+     * Check if user is on a paid plan.
+     */
+    public function isPaid(): bool
+    {
+        return in_array($this->plan, ['monthly', 'lifetime']);
+    }
+
+    /**
+     * Check if user has remaining scans.
+     */
+    public function hasScansRemaining(): bool
+    {
+        return $this->scan_count < $this->scan_limit;
+    }
+
+    /**
+     * Increment scan count.
+     */
+    public function incrementScanCount(): void
+    {
+        $this->increment('scan_count');
+    }
+
+    /**
+     * Reset monthly scan count.
+     */
+    public function resetMonthlyScans(): void
+    {
+        $this->update(['scan_count' => 0]);
     }
 }
