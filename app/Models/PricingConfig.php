@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class PricingConfig extends Model
 {
@@ -11,76 +11,63 @@ class PricingConfig extends Model
 
     protected $fillable = [
         'name',
-        'is_active',
+        'description',
         'config',
+        'is_active',
         'traffic_split',
+        'activated_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'config' => 'array',
         'traffic_split' => 'integer',
+        'activated_at' => 'datetime',
     ];
 
     /**
-     * Get the default pricing config.
+     * Get the active pricing configuration.
      */
-    public static function getActiveConfig(): ?self
+    public static function getActive(): ?self
     {
         return static::where('is_active', true)->first();
     }
 
     /**
-     * Check if this config is active.
+     * Set this config as the active one.
      */
-    public function isActive(): bool
+    public function setAsActive(): void
     {
-        return $this->is_active;
+        // Deactivate all configs
+        static::query()->update(['is_active' => false]);
+
+        // Activate this one
+        $this->update(['is_active' => true, 'activated_at' => now()]);
     }
 
     /**
-     * Get the plan names from config.
+     * Get a specific plan from the config.
      */
-    public function getPlanNamesAttribute(): array
+    public function getPlan(string $planKey): ?array
     {
-        return $this->config['plans'] ?? [];
+        $config = $this->config ?? [];
+        return $config['plans'][$planKey] ?? null;
     }
 
     /**
-     * Get the CTA text.
+     * Get all plans from the config.
      */
-    public function getCtaTextAttribute(): string
+    public function getPlans(): array
     {
-        return $this->config['cta']['text'] ?? 'Get Started';
+        return ($this->config ?? [])['plans'] ?? [];
     }
 
     /**
-     * Get the highlighted plan slug.
+     * Get the highlighted plan key.
      */
-    public function getHighlightedPlanAttribute(): ?string
+    public function getHighlightedPlan(): ?string
     {
-        return $this->config['highlighted_plan'] ?? null;
-    }
-
-    /**
-     * Get feature list for a specific plan.
-     */
-    public function getPlanFeatures(string $planSlug): array
-    {
-        return $this->config['plans'][$planSlug]['features'] ?? [];
-    }
-
-    /**
-     * Get price for a specific plan and cycle.
-     */
-    public function getPlanPrice(string $planSlug, string $cycle = 'monthly'): ?float
-    {
-        $prices = $this->config['plans'][$planSlug]['price'] ?? null;
-        if (!$prices) {
-            return null;
-        }
-
-        return $prices[$cycle] ?? $prices['monthly'] ?? null;
+        return ($this->config ?? [])['highlighted_plan'] ?? null;
     }
 
     /**
@@ -89,5 +76,13 @@ class PricingConfig extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope ordered configs.
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order', 'asc')->orderBy('id', 'asc');
     }
 }
