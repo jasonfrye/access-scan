@@ -29,15 +29,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/dashboard/scan', [DashboardController::class, 'storeScan'])->name('dashboard.scan.store');
     Route::get('/dashboard/scan/{scan}', [DashboardController::class, 'showScan'])->name('dashboard.scan');
     
-    // Scheduled scans
-    Route::post('/dashboard/scheduled-scans', [DashboardController::class, 'storeScheduledScan'])->name('dashboard.scheduled.store');
-    Route::post('/dashboard/scheduled-scans/{schedule}/toggle', [DashboardController::class, 'toggleScheduledScan'])->name('dashboard.scheduled.toggle');
-    Route::delete('/dashboard/scheduled-scans/{schedule}', [DashboardController::class, 'destroyScheduledScan'])->name('dashboard.scheduled.destroy');
+    // Scheduled scans (paid feature)
+    Route::post('/dashboard/scheduled-scans', [DashboardController::class, 'storeScheduledScan'])
+        ->name('dashboard.scheduled.store')
+        ->middleware('plan.feature:scheduled_scans');
+    Route::post('/dashboard/scheduled-scans/{schedule}/toggle', [DashboardController::class, 'toggleScheduledScan'])
+        ->name('dashboard.scheduled.toggle')
+        ->middleware('plan.feature:scheduled_scans');
+    Route::delete('/dashboard/scheduled-scans/{schedule}', [DashboardController::class, 'destroyScheduledScan'])
+        ->name('dashboard.scheduled.destroy')
+        ->middleware('plan.feature:scheduled_scans');
     
-    // Report downloads
-    Route::get('/dashboard/scan/{scan}/export/pdf', [ReportController::class, 'pdf'])->name('report.pdf');
-    Route::get('/dashboard/scan/{scan}/export/csv', [ReportController::class, 'csv'])->name('report.csv');
-    Route::get('/dashboard/scan/{scan}/export/json', [ReportController::class, 'json'])->name('report.json');
+    // Report downloads (paid feature)
+    Route::get('/dashboard/scan/{scan}/export/pdf', [ReportController::class, 'pdf'])
+        ->name('report.pdf')
+        ->middleware('plan.feature:pdf_export');
+    Route::get('/dashboard/scan/{scan}/export/csv', [ReportController::class, 'csv'])
+        ->name('report.csv')
+        ->middleware('plan.feature:csv_export');
+    Route::get('/dashboard/scan/{scan}/export/json', [ReportController::class, 'json'])
+        ->name('report.json')
+        ->middleware('plan.feature:json_export');
     
     // Billing
     Route::get('/billing', [BillingController::class, 'index'])->name('billing.index');
