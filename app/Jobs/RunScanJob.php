@@ -91,7 +91,7 @@ class RunScanJob implements ShouldQueue
     }
 
     /**
-     * Check for score regression compared to previous scan.
+     * Check for score regression or significant improvement.
      */
     protected function checkForRegression(\App\Services\NotificationService $notifications): void
     {
@@ -116,10 +116,16 @@ class RunScanJob implements ShouldQueue
         $currentScore = $this->scan->score ?? 0;
         $previousScore = $previousScan->score ?? 0;
         $scoreDrop = $previousScore - $currentScore;
+        $scoreImprove = $currentScore - $previousScore;
 
-        // Alert if score dropped by 10+ points
+        // Alert if score dropped by 10+ points (regression)
         if ($scoreDrop >= 10) {
-            $notifications->sendRegressionAlert($user, $this->scan, $previousScan);
+            $notifications->sendRegressionAlert($user, $this->scan, $previousScan, $scoreDrop);
+        }
+
+        // Celebrate if score improved by 20+ points
+        if ($scoreImprove >= 20) {
+            $notifications->sendScoreImproveNotification($user, $this->scan, $previousScan, $scoreImprove);
         }
     }
 

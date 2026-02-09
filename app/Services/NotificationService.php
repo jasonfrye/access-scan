@@ -44,13 +44,11 @@ class NotificationService
     /**
      * Send regression alert for scheduled scans.
      */
-    public function sendRegressionAlert(User $user, Scan $currentScan, Scan $previousScan): void
+    public function sendRegressionAlert(User $user, Scan $currentScan, Scan $previousScan, int $scoreDrop): void
     {
         if (!$user->email) {
             return;
         }
-
-        $scoreDrop = ($previousScan->score ?? 0) - ($currentScan->score ?? 0);
 
         try {
             Mail::to($user->email)->send(new \App\Mail\RegressionAlertMail($currentScan, $previousScan, $scoreDrop));
@@ -62,6 +60,31 @@ class NotificationService
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to send regression alert', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Send score improvement celebration.
+     */
+    public function sendScoreImproveNotification(User $user, Scan $currentScan, Scan $previousScan, int $improvement): void
+    {
+        if (!$user->email) {
+            return;
+        }
+
+        try {
+            Mail::to($user->email)->send(new \App\Mail\ScoreImproveMail($user, $currentScan, $previousScan, $improvement));
+
+            Log::info('Score improvement notification sent', [
+                'user_id' => $user->id,
+                'scan_id' => $currentScan->id,
+                'improvement' => $improvement,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send score improvement notification', [
                 'user_id' => $user->id,
                 'error' => $e->getMessage(),
             ]);
