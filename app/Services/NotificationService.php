@@ -133,6 +133,30 @@ class NotificationService
     }
 
     /**
+     * Send re-engagement email to inactive users.
+     */
+    public function sendReEngagementEmail(User $user, int $daysInactive): void
+    {
+        if (!$user->email) {
+            return;
+        }
+
+        try {
+            Mail::to($user->email)->send(new \App\Mail\ReEngagementMail($user, $daysInactive));
+
+            Log::info('Re-engagement email sent', [
+                'user_id' => $user->id,
+                'days_inactive' => $daysInactive,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send re-engagement email', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
      * Send welcome email to new user.
      */
     public function sendWelcomeEmail(User $user): void
