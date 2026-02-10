@@ -1,10 +1,10 @@
 <?php
 
+use App\Http\Middleware\CheckPlanFeature;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Console\Scheduling\Schedule;
-use App\Http\Middleware\CheckPlanFeature;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -30,6 +30,13 @@ return Application::configure(basePath: dirname(__DIR__))
             ->onSuccess(function () {
                 //
             });
+
+        // Scheduled scans - every 5 minutes
+        $schedule->command('app:run-scheduled-scans')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->appendOutputTo(storage_path('logs/scheduled-scans.log'));
 
         // Weekly digests - every Monday at 10am
         $schedule->command('access-scan:send-weekly-digests')

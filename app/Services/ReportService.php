@@ -13,13 +13,16 @@ class ReportService
      */
     public function generatePdf(Scan $scan): string
     {
+        $whiteLabel = $scan->user && $scan->user->plan === 'lifetime';
+
         $pdf = Pdf::loadView('reports.pdf', [
             'scan' => $scan->load(['pages.issues', 'user']),
             'stats' => $this->calculateStats($scan),
+            'whiteLabel' => $whiteLabel,
         ]);
 
-        $filename = "reports/scan-{$scan->id}-" . time() . '.pdf';
-        
+        $filename = "reports/scan-{$scan->id}-".time().'.pdf';
+
         Storage::disk('public')->put($filename, $pdf->output());
 
         return $filename;
@@ -45,10 +48,10 @@ class ReportService
             ];
         });
 
-        $csv = implode("\n", [implode(',', $headers), ...$rows->map(fn($r) => '"' . implode('","', $r) . '"')]);
+        $csv = implode("\n", [implode(',', $headers), ...$rows->map(fn ($r) => '"'.implode('","', $r).'"')]);
 
-        $filename = "reports/scan-{$scan->id}-" . time() . '.csv';
-        
+        $filename = "reports/scan-{$scan->id}-".time().'.csv';
+
         Storage::disk('public')->put($filename, $csv);
 
         return $filename;
@@ -91,8 +94,8 @@ class ReportService
             }),
         ];
 
-        $filename = "reports/scan-{$scan->id}-" . time() . '.json';
-        
+        $filename = "reports/scan-{$scan->id}-".time().'.json';
+
         Storage::disk('public')->put($filename, json_encode($data, JSON_PRETTY_PRINT));
 
         return $filename;
@@ -105,7 +108,7 @@ class ReportService
     {
         $totalPages = $scan->pages->count();
         $totalIssues = $scan->pages->sum('issues_count');
-        
+
         $errors = $scan->pages->flatMap->issues->where('type', 'error')->count();
         $warnings = $scan->pages->flatMap->issues->where('type', 'warning')->count();
         $notices = $scan->pages->flatMap->issues->where('type', 'notice')->count();
@@ -137,7 +140,7 @@ class ReportService
             default => null,
         };
 
-        if (!$method) {
+        if (! $method) {
             return null;
         }
 

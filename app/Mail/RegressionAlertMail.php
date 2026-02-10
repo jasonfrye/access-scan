@@ -4,12 +4,13 @@ namespace App\Mail;
 
 use App\Models\Scan;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class RegressionAlertMail extends Mailable
+class RegressionAlertMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -22,7 +23,7 @@ class RegressionAlertMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '⚠️ Accessibility Score Dropped - ' . $this->currentScan->domain,
+            subject: '⚠️ Accessibility Score Dropped - '.$this->currentScan->domain,
         );
     }
 

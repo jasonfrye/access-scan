@@ -4,12 +4,13 @@ namespace App\Mail;
 
 use App\Models\Scan;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class ScanCompleteMail extends Mailable
+class ScanCompleteMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -20,7 +21,7 @@ class ScanCompleteMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Accessibility Scan is Complete - ' . $this->scan->domain,
+            subject: 'Your Accessibility Scan is Complete - '.$this->scan->domain,
         );
     }
 
@@ -46,7 +47,7 @@ class ScanCompleteMail extends Mailable
             ->flatMap->issues
             ->where('type', 'error')
             ->take(5)
-            ->map(fn($issue) => [
+            ->map(fn ($issue) => [
                 'message' => $issue->message,
                 'wcag' => $issue->wcag_reference,
                 'level' => $issue->wcag_level,

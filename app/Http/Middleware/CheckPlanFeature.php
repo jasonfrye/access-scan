@@ -17,7 +17,7 @@ class CheckPlanFeature
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
@@ -32,7 +32,7 @@ class CheckPlanFeature
             default => false,
         };
 
-        if (!$hasAccess) {
+        if (! $hasAccess) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'error' => 'Upgrade required',
@@ -58,7 +58,7 @@ class CheckPlanFeature
             ->where('completed_at', '>=', now()->startOfMonth())
             ->count();
 
-        $limit = $user->scan_limit ?? 5;
+        $limit = $user->getScanLimit();
         $remaining = max(0, $limit - $currentMonthScans);
 
         if ($currentMonthScans >= $limit) {
@@ -69,9 +69,9 @@ class CheckPlanFeature
                 'limit' => $limit,
                 'remaining' => 0,
                 'reset_date' => now()->endOfMonth()->format('F j, Y'),
-                'message' => "You've reached your monthly limit of {$limit} scans. Your limit resets on " . now()->endOfMonth()->format('F j, Y') . ".",
+                'message' => "You've reached your monthly limit of {$limit} scans. Your limit resets on ".now()->endOfMonth()->format('F j, Y').'.',
                 'upgrade_url' => route('billing.pricing'),
-                'upgrade_message' => 'Upgrade to Pro for 50 scans/month!',
+                'upgrade_message' => 'Upgrade to Pro for more scans!',
             ];
         }
 
@@ -123,7 +123,7 @@ class CheckPlanFeature
      */
     public static function canCreateScheduledScan(User $user): array
     {
-        if (!$user->isPaid()) {
+        if (! $user->isPaid()) {
             return [
                 'allowed' => false,
                 'reason' => 'paid_plan_required',
@@ -134,7 +134,7 @@ class CheckPlanFeature
         }
 
         $activeSchedules = $user->scheduledScans()->active()->count();
-        $maxSchedules = 10;
+        $maxSchedules = $user->getScheduledScanLimit();
 
         if ($activeSchedules >= $maxSchedules) {
             return [
@@ -164,7 +164,7 @@ class CheckPlanFeature
      */
     public static function canExport(User $user, string $format): array
     {
-        if (!$user->isPaid()) {
+        if (! $user->isPaid()) {
             $formats = ['pdf', 'csv', 'json'];
             $formatName = strtoupper($format);
 

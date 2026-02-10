@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Str;
 
 class Scan extends Model
 {
@@ -14,6 +15,7 @@ class Scan extends Model
 
     protected $fillable = [
         'user_id',
+        'slug',
         'url',
         'status',
         'scan_type',
@@ -42,20 +44,44 @@ class Scan extends Model
         'expires_at' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (Scan $scan) {
+            if (empty($scan->slug)) {
+                $scan->slug = Str::uuid()->toString();
+            }
+        });
+    }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     /**
      * Status constants.
      */
     const STATUS_PENDING = 'pending';
+
     const STATUS_RUNNING = 'running';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_FAILED = 'failed';
 
     /**
      * Scan type constants.
      */
     const TYPE_QUICK = 'quick';
+
     const TYPE_FULL = 'full';
+
     const TYPE_SCHEDULED = 'scheduled';
+
+    const TYPE_API = 'api';
 
     /**
      * Get the user that owns this scan.
@@ -82,11 +108,27 @@ class Scan extends Model
     }
 
     /**
-     * Get the report for this scan.
+     * Get the reports for this scan.
      */
-    public function report(): HasMany
+    public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
+    }
+
+    /**
+     * Get guest scan records for this scan.
+     */
+    public function guestScans(): HasMany
+    {
+        return $this->hasMany(GuestScan::class);
+    }
+
+    /**
+     * Get email leads captured from this scan.
+     */
+    public function emailLeads(): HasMany
+    {
+        return $this->hasMany(EmailLead::class);
     }
 
     /**
@@ -220,7 +262,7 @@ class Scan extends Model
      */
     public function getScoreDisplayAttribute(): string
     {
-        return $this->score !== null ? number_format($this->score, 0) . '/100' : 'N/A';
+        return $this->score !== null ? number_format($this->score, 0).'/100' : 'N/A';
     }
 
     /**

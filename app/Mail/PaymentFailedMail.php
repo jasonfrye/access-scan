@@ -4,12 +4,13 @@ namespace App\Mail;
 
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class PaymentFailedMail extends Mailable
+class PaymentFailedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -31,7 +32,7 @@ class PaymentFailedMail extends Mailable
 
     public function content(): Content
     {
-        $updateUrl = $this->updatePaymentUrl ?? config('app.url') . '/billing';
+        $updateUrl = $this->updatePaymentUrl ?? config('app.url').'/billing';
 
         return new Content(
             markdown: 'emails.payment-failed',

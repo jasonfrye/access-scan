@@ -1,0 +1,13 @@
+
+[mcp_servers.laravel-boost]
+command = "php"
+args = ["artisan", "boost:mcp"]
+cwd = "/Users/jasonfrye/www/sites/access-scan"
+
+[mcp_servers.herd]
+command = "php"
+args = ["/Applications/Herd.app/Contents/Resources/herd-mcp.phar"]
+cwd = "/Users/jasonfrye/www/sites/access-scan"
+
+[mcp_servers.herd.env]
+SITE_PATH = "/Users/jasonfrye/www/sites/access-scan"

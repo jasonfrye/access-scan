@@ -2,12 +2,12 @@
 
 namespace Tests\Unit\Jobs;
 
-use Tests\TestCase;
 use App\Jobs\RunScanJob;
 use App\Models\Scan;
-use App\Services\ScannerService;
 use App\Services\NotificationService;
+use App\Services\ScannerService;
 use Mockery;
+use Tests\TestCase;
 
 class RunScanJobTest extends TestCase
 {
@@ -22,8 +22,9 @@ class RunScanJobTest extends TestCase
      */
     protected function createScan(array $attributes): Scan
     {
-        $scan = new Scan();
+        $scan = new Scan;
         $scan->forceFill($attributes);
+
         return $scan;
     }
 
@@ -31,7 +32,7 @@ class RunScanJobTest extends TestCase
     public function it_has_correct_queue_name()
     {
         $scan = $this->createScan(['id' => 1, 'url' => 'https://example.com']);
-        
+
         $job = new RunScanJob($scan);
 
         $this->assertEquals('scans', $job->queue);
@@ -65,7 +66,7 @@ class RunScanJobTest extends TestCase
     public function it_has_max_attempts_set()
     {
         $scan = $this->createScan(['id' => 100, 'url' => 'https://example.com']);
-        
+
         $job = new RunScanJob($scan);
 
         $this->assertEquals(3, $job->maxAttempts);
@@ -75,7 +76,7 @@ class RunScanJobTest extends TestCase
     public function it_has_backoff_set()
     {
         $scan = $this->createScan(['id' => 101, 'url' => 'https://example.com']);
-        
+
         $job = new RunScanJob($scan);
 
         $this->assertEquals(60, $job->backoff);
@@ -85,7 +86,7 @@ class RunScanJobTest extends TestCase
     public function it_returns_correct_retry_until()
     {
         $scan = $this->createScan(['id' => 102, 'url' => 'https://example.com']);
-        
+
         $job = new RunScanJob($scan);
 
         $retryUntil = $job->retryUntil();
@@ -152,27 +153,36 @@ class RunScanJobTest extends TestCase
     }
 
     /** @test */
-    public function it_marks_failed_after_exhausted_retries()
+    public function it_marks_failed_via_failed_method()
     {
-        $scan = $this->createScan(['id' => 203, 'url' => 'https://example.com', 'status' => Scan::STATUS_PENDING]);
+        $scan = Mockery::mock(Scan::class)->makePartial();
+        $scan->forceFill(['id' => 203, 'url' => 'https://example.com', 'status' => Scan::STATUS_PENDING]);
+        $scan->shouldReceive('markAsFailed')
+            ->once()
+            ->with(Mockery::pattern('/Persistent failure/'));
+
+        $job = new RunScanJob($scan);
+
+        // The failed() method is called by Laravel after all retries are exhausted
+        $job->failed(new \Exception('Persistent failure'));
+    }
+
+    /** @test */
+    public function it_always_rethrows_exceptions_for_retry()
+    {
+        $scan = $this->createScan(['id' => 204, 'url' => 'https://example.com', 'status' => Scan::STATUS_PENDING]);
 
         $mockScanner = $this->mock(ScannerService::class);
         $mockScanner->shouldReceive('runScan')
-            ->andThrow(new \Exception('Persistent failure'));
+            ->andThrow(new \Exception('Scanner failure'));
 
         $mockNotification = $this->mock(NotificationService::class);
 
         $job = new RunScanJob($scan);
-        
-        // Override maxAttempts to 1 so attempts() < maxAttempts is false
-        // (attempts() returns 1 by default, maxAttempts=1 means 1 < 1 = false)
-        $job->maxAttempts = 1;
 
-        // Should NOT throw when attempts >= maxAttempts
-        // The job catches the exception and calls markAsFailed()
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Scanner failure');
+
         $job->handle($mockScanner, $mockNotification);
-
-        // Verify the job completed without throwing (retry exhausted path works)
-        $this->assertTrue(true);
     }
 }

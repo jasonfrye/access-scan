@@ -2,21 +2,24 @@
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Models\Plan;
-use Laravel\Cashier\Cashier;
-use Laravel\Cashier\Subscription;
-use Stripe\StripeClient;
-use Stripe\Exception\ApiErrorException;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Laravel\Cashier\Subscription;
+use Stripe\Exception\ApiErrorException;
+use Stripe\StripeClient;
 
 class StripeService
 {
-    protected StripeClient $stripe;
+    protected ?StripeClient $stripe = null;
 
-    public function __construct()
+    protected function stripe(): StripeClient
     {
-        $this->stripe = new StripeClient(config('cashier.secret'));
+        if ($this->stripe === null) {
+            $this->stripe = new StripeClient(config('cashier.secret'));
+        }
+
+        return $this->stripe;
     }
 
     /**
@@ -24,7 +27,7 @@ class StripeService
      */
     public function createCustomer(User $user): string
     {
-        $customer = $this->stripe->customers->create([
+        $customer = $this->stripe()->customers->create([
             'email' => $user->email,
             'name' => $user->name,
             'metadata' => [
@@ -47,11 +50,11 @@ class StripeService
      */
     public function createSubscription(User $user, string $priceId, string $plan): Subscription
     {
-        if (!$user->stripe_id) {
+        if (! $user->stripe_id) {
             $this->createCustomer($user);
         }
 
-        $subscription = $this->stripe->subscriptions->create([
+        $subscription = $this->stripe()->subscriptions->create([
             'customer' => $user->stripe_id,
             'items' => [
                 ['price' => $priceId],
@@ -78,11 +81,11 @@ class StripeService
      */
     public function createLifetimePayment(User $user, int $amount, string $productId): array
     {
-        if (!$user->stripe_id) {
+        if (! $user->stripe_id) {
             $this->createCustomer($user);
         }
 
-        $paymentIntent = $this->stripe->paymentIntents->create([
+        $paymentIntent = $this->stripe()->paymentIntents->create([
             'customer' => $user->stripe_id,
             'amount' => $amount,
             'currency' => 'usd',
@@ -105,7 +108,7 @@ class StripeService
      */
     public function cancelSubscription(string $subscriptionId): Subscription
     {
-        $subscription = $this->stripe->subscriptions->cancel($subscriptionId);
+        $subscription = $this->stripe()->subscriptions->cancel($subscriptionId);
 
         Log::info('Stripe subscription cancelled', [
             'subscription_id' => $subscriptionId,
@@ -119,9 +122,9 @@ class StripeService
      */
     public function resumeSubscription(string $subscriptionId): Subscription
     {
-        $subscription = $this->stripe->subscriptions->retrieve($subscriptionId);
-        
-        $updatedSubscription = $this->stripe->subscriptions->update($subscriptionId, [
+        $subscription = $this->stripe()->subscriptions->retrieve($subscriptionId);
+
+        $updatedSubscription = $this->stripe()->subscriptions->update($subscriptionId, [
             'cancel_at_period_end' => false,
         ]);
 
@@ -138,7 +141,7 @@ class StripeService
     public function getSubscriptionStatus(string $subscriptionId): ?object
     {
         try {
-            return $this->stripe->subscriptions->retrieve($subscriptionId);
+            return $this->stripe()->subscriptions->retrieve($subscriptionId);
         } catch (ApiErrorException $e) {
             return null;
         }
@@ -149,11 +152,11 @@ class StripeService
      */
     public function createCheckoutSession(User $user, string $priceId, string $successUrl, string $cancelUrl): string
     {
-        if (!$user->stripe_id) {
+        if (! $user->stripe_id) {
             $this->createCustomer($user);
         }
 
-        $session = $this->stripe->checkout->sessions->create([
+        $session = $this->stripe()->checkout->sessions->create([
             'customer' => $user->stripe_id,
             'payment_method_types' => ['card'],
             'line_items' => [
@@ -178,7 +181,7 @@ class StripeService
      */
     public function createPortalSession(User $user, string $returnUrl): string
     {
-        $session = $this->stripe->billingPortal->sessions->create([
+        $session = $this->stripe()->billingPortal->sessions->create([
             'customer' => $user->stripe_id,
             'return_url' => $returnUrl,
         ]);
@@ -211,7 +214,7 @@ class StripeService
     protected function handleSubscriptionCreated(object $subscription): string
     {
         $userId = $subscription->metadata->user_id ?? null;
-        
+
         if ($userId) {
             $user = User::find($userId);
             if ($user) {
@@ -227,13 +230,13 @@ class StripeService
     protected function handleSubscriptionUpdated(object $subscription): string
     {
         $userId = $subscription->metadata->user_id ?? null;
-        
+
         if ($userId) {
             $user = User::find($userId);
             if ($user) {
                 $user->update([
-                    'plan' => $subscription->status === 'active' 
-                        ? ($subscription->metadata->plan ?? 'monthly') 
+                    'plan' => $subscription->status === 'active'
+                        ? ($subscription->metadata->plan ?? 'monthly')
                         : 'free',
                 ]);
             }
@@ -245,7 +248,7 @@ class StripeService
     protected function handleSubscriptionDeleted(object $subscription): string
     {
         $userId = $subscription->metadata->user_id ?? null;
-        
+
         if ($userId) {
             $user = User::find($userId);
             if ($user) {

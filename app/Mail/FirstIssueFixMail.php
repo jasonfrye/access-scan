@@ -3,15 +3,15 @@
 namespace App\Mail;
 
 use App\Models\Scan;
-use App\Models\ScanIssue;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class FirstIssueFixMail extends Mailable
+class FirstIssueFixMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 

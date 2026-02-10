@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Scan;
-use App\Models\ScanSchedule;
 use App\Jobs\RunScanJob;
+use App\Models\Scan;
+use App\Models\ScanPage;
+use App\Models\ScanSchedule;
+use App\Services\IssueCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +19,7 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        
+
         $scans = $user->scans()
             ->with('pages')
             ->orderBy('created_at', 'desc')
@@ -88,7 +90,7 @@ class DashboardController extends Controller
     {
         $this->authorize('update', $schedule);
 
-        $schedule->update(['is_active' => !$schedule->is_active]);
+        $schedule->update(['is_active' => ! $schedule->is_active]);
 
         $status = $schedule->is_active ? 'enabled' : 'paused';
 
@@ -121,7 +123,7 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         // Check if user has scans remaining
-        if (!$user->hasScansRemaining()) {
+        if (! $user->hasScansRemaining()) {
             return redirect()->route('dashboard')
                 ->with('error', 'You have reached your scan limit. Please upgrade your plan.');
         }
@@ -134,7 +136,7 @@ class DashboardController extends Controller
                 'user_id' => $user->id,
                 'url' => $url,
                 'status' => Scan::STATUS_PENDING,
-                'scan_type' => Scan::TYPE_QUICK,
+                'scan_type' => Scan::TYPE_FULL,
             ]);
 
             // Increment user's scan count
@@ -164,15 +166,33 @@ class DashboardController extends Controller
     }
 
     /**
-     * Display a specific scan result.
+     * Display a specific scan result (pages overview).
      */
     public function showScan(Scan $scan)
     {
         $this->authorize('view', $scan);
 
-        $scan->load(['pages.issues']);
+        $scan->load(['pages']);
 
-        return view('dashboard.scan', compact('scan'));
+        $pages = $scan->pages->sortBy('score');
+
+        return view('dashboard.scan', compact('scan', 'pages'));
+    }
+
+    /**
+     * Display a specific page's categorized issues.
+     */
+    public function showScanPage(Scan $scan, ScanPage $scanPage)
+    {
+        $this->authorize('view', $scan);
+
+        abort_unless($scanPage->scan_id === $scan->id, 404);
+
+        $scanPage->load('issues');
+
+        $categories = IssueCategory::groupByCategory($scanPage->issues);
+
+        return view('dashboard.scan-page', compact('scan', 'scanPage', 'categories'));
     }
 
     /**
@@ -186,7 +206,7 @@ class DashboardController extends Controller
             ->take(30)
             ->get();
 
-        $labels = $scans->map(fn($s) => $s->completed_at->format('M d'))->toArray();
+        $labels = $scans->map(fn ($s) => $s->completed_at->format('M d'))->toArray();
         $scores = $scans->pluck('score')->toArray();
 
         return [

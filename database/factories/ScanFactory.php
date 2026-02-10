@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Scan;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class ScanFactory extends Factory
 {
@@ -14,6 +15,7 @@ class ScanFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
+            'slug' => Str::uuid()->toString(),
             'url' => fake()->url(),
             'status' => Scan::STATUS_PENDING,
             'scan_type' => Scan::TYPE_QUICK,

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Plan extends Model
 {
@@ -43,11 +43,13 @@ class Plan extends Model
     ];
 
     /**
-     * Get the plan by slug.
+     * Get the plan by slug (cached).
      */
     public static function findBySlug(string $slug): ?self
     {
-        return static::where('slug', $slug)->first();
+        return cache()->remember("plan:{$slug}", 3600, function () use ($slug) {
+            return static::where('slug', $slug)->first();
+        });
     }
 
     /**

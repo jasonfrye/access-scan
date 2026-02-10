@@ -2,11 +2,14 @@
 
 namespace App\Livewire\Scan;
 
-use Livewire\Component;
-use Livewire\Attributes\Validate;
-use Livewire\Attributes\On;
-use Illuminate\Support\Facades\Http;
+use App\Jobs\RunScanJob;
+use App\Models\GuestScan;
+use App\Models\Scan;
+use App\Services\UrlValidator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Livewire\Attributes\Validate;
+use Livewire\Component;
 
 class Form extends Component
 {
@@ -19,9 +22,7 @@ class Form extends Component
 
     public ?int $scanId = null;
 
-    protected int $maxAttempts = 5;
-
-    public function initiateScan()
+    public function initiateScan(): void
     {
         $this->validate();
 
@@ -29,66 +30,58 @@ class Form extends Component
         $this->isLoading = true;
 
         try {
-            // Check rate limit
-            $rateLimitKey = 'guest-scan:' . request()->ip();
-            if (!RateLimiter::attempt($rateLimitKey, 1, now()->hours(24))) {
-                $this->errorMessage = 'Rate limit exceeded. You can run 1 free scan per 24 hours.';
-                $this->isLoading = false;
-                return;
-            }
-
-            // Validate URL
-            $validation = $this->validateUrl($this->url);
+            $urlValidator = app(UrlValidator::class);
+            $validation = $urlValidator->validateForScanning($this->url);
             if ($validation !== true) {
                 $this->errorMessage = $validation;
                 $this->isLoading = false;
+
                 return;
             }
 
-            // Create scan via API
-            $response = Http::post(route('api.scans.store'), [
+            $rateLimitKey = 'guest-scan:'.request()->ip();
+            if (RateLimiter::tooManyAttempts($rateLimitKey, 1)) {
+                $this->errorMessage = 'Rate limit exceeded. You can run 1 free scan per 24 hours.';
+                $this->isLoading = false;
+
+                return;
+            }
+
+            RateLimiter::hit($rateLimitKey, 60 * 60 * 24);
+
+            $scan = Scan::create([
+                'user_id' => null,
+                'url' => $this->url,
+                'status' => Scan::STATUS_PENDING,
+                'scan_type' => Scan::TYPE_QUICK,
+            ]);
+
+            GuestScan::create([
+                'ip_address' => request()->ip(),
+                'scan_id' => $scan->id,
+            ]);
+
+            dispatch(new RunScanJob($scan));
+
+            session()->put('guest_scan_id', $scan->id);
+
+            Log::info('Guest scan initiated', [
+                'scan_id' => $scan->id,
+                'ip' => request()->ip(),
                 'url' => $this->url,
             ]);
 
-            if ($response->successful()) {
-                $this->scanId = $response->json()['scan_id'];
-                $redirectUrl = $response->json()['redirect_url'];
-                
-                // Dispatch event and redirect
-                $this->dispatch('scan-created', scanId: $this->scanId);
-                $this->dispatch('scan-started', scanId: $this->scanId);
-                
-                // Redirect to pending page
-                return $this->redirect($redirectUrl, navigate: true);
-            } else {
-                $this->errorMessage = $response->json()['error'] ?? 'Failed to start scan. Please try again.';
-            }
+            $this->scanId = $scan->id;
+            $this->dispatch('scan-created', scanId: $this->scanId);
+            $this->dispatch('scan-started', scanId: $this->scanId);
+
+            $this->redirect(route('scan.pending', $scan));
         } catch (\Exception $e) {
+            Log::error('Failed to initiate scan from form', ['error' => $e->getMessage()]);
             $this->errorMessage = 'An error occurred. Please try again.';
         } finally {
             $this->isLoading = false;
         }
-    }
-
-    protected function validateUrl(string $url): string|true
-    {
-        // Check for localhost
-        if (preg_match('/(localhost|127\.0\.0\.1|\.local|\.test)/i', $url)) {
-            return 'Cannot scan localhost or local URLs';
-        }
-
-        // Check for IP addresses
-        if (preg_match('/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $url)) {
-            return 'Cannot scan IP addresses';
-        }
-
-        // Check protocol
-        $scheme = parse_url($url, PHP_URL_SCHEME);
-        if (!in_array($scheme, ['http', 'https'])) {
-            return 'URL must use HTTP or HTTPS protocol';
-        }
-
-        return true;
     }
 
     public function render()

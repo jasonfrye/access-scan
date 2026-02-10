@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Services;
 
-use Tests\TestCase;
 use App\Services\ScannerService;
+use Tests\TestCase;
 
 class ScannerServiceTest extends TestCase
 {
@@ -12,7 +12,7 @@ class ScannerServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ScannerService();
+        $this->service = new ScannerService;
     }
 
     /** @test */
@@ -28,8 +28,8 @@ class ScannerServiceTest extends TestCase
     {
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [0, 0, 10]);
 
-        // 10 notices * 0.1 weight = 1, 100 - 0.5 = 99.5
-        $this->assertEquals(99.5, $score);
+        // 10 notices * 0.25 = 2.5 weighted, 100 * e^(-0.013 * 2.5) = ~96.80
+        $this->assertEqualsWithDelta(96.80, $score, 0.5);
     }
 
     /** @test */
@@ -37,8 +37,8 @@ class ScannerServiceTest extends TestCase
     {
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [0, 5, 0]);
 
-        // 5 warnings * 1 weight = 5, 100 - 2.5 = 97.5
-        $this->assertEquals(97.5, $score);
+        // 5 warnings * 1 = 5 weighted, 100 * e^(-0.013 * 5) = ~93.70
+        $this->assertEqualsWithDelta(93.70, $score, 0.5);
     }
 
     /** @test */
@@ -46,8 +46,8 @@ class ScannerServiceTest extends TestCase
     {
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [3, 0, 0]);
 
-        // 3 errors * 10 weight = 30, 100 - 15 = 85
-        $this->assertEquals(85, $score);
+        // 3 errors * 2 = 6 weighted, 100 * e^(-0.013 * 6) = ~92.49
+        $this->assertEqualsWithDelta(92.49, $score, 0.5);
     }
 
     /** @test */
@@ -55,9 +55,9 @@ class ScannerServiceTest extends TestCase
     {
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [2, 3, 5]);
 
-        // (2*10) + (3*1) + (5*0.1) = 20 + 3 + 0.5 = 23.5 weighted
-        // 100 - (23.5 * 0.5) = 100 - 11.75 = 88.25
-        $this->assertEquals(88.25, $score);
+        // (2*2) + (3*1) + (5*0.25) = 4 + 3 + 1.25 = 8.25 weighted
+        // 100 * e^(-0.013 * 8.25) = ~89.83
+        $this->assertEqualsWithDelta(89.83, $score, 0.5);
     }
 
     /** @test */
@@ -65,20 +65,38 @@ class ScannerServiceTest extends TestCase
     {
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [100, 100, 100]);
 
-        $this->assertEquals(0, $score);
+        $this->assertLessThanOrEqual(5, $score);
     }
 
     /** @test */
-    public function it_clamps_score_to_100_for_perfect_page()
+    public function it_returns_100_for_no_positive_issues()
     {
-        $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [-10, 0, 0]);
+        $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [0, 0, 0]);
 
         $this->assertEquals(100, $score);
     }
 
     /** @test */
-    public function it_validates_localhost_urls()
+    public function it_produces_realistic_scores_for_typical_sites()
     {
+        // A mediocre site: 25 errors (Pa11y reports most as errors)
+        // (25*2) = 50 weighted, 100 * e^(-0.013 * 50) = ~52.2
+        $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [25, 0, 0]);
+        $this->assertGreaterThan(45, $score);
+        $this->assertLessThan(60, $score);
+
+        // A decent site: 5 errors
+        // (5*2) = 10 weighted, 100 * e^(-0.013 * 10) = ~87.8
+        $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [5, 0, 0]);
+        $this->assertGreaterThan(80, $score);
+        $this->assertLessThan(95, $score);
+    }
+
+    /** @test */
+    public function it_validates_localhost_urls_in_production()
+    {
+        app()->detectEnvironment(fn () => 'production');
+
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Cannot scan localhost URLs');
 
@@ -86,8 +104,10 @@ class ScannerServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_validates_localhost_with_127_0_0_1()
+    public function it_validates_localhost_with_127_0_0_1_in_production()
     {
+        app()->detectEnvironment(fn () => 'production');
+
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Cannot scan localhost URLs');
 
@@ -95,8 +115,10 @@ class ScannerServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_validates_localhost_with_dot_local()
+    public function it_validates_localhost_with_dot_local_in_production()
     {
+        app()->detectEnvironment(fn () => 'production');
+
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Cannot scan localhost URLs');
 
@@ -104,8 +126,10 @@ class ScannerServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_validates_ip_addresses()
+    public function it_validates_ip_addresses_in_production()
     {
+        app()->detectEnvironment(fn () => 'production');
+
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Cannot scan IP addresses');
 
@@ -113,12 +137,24 @@ class ScannerServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_validates_private_ip_ranges()
+    public function it_validates_private_ip_ranges_in_production()
     {
+        app()->detectEnvironment(fn () => 'production');
+
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Cannot scan IP addresses');
 
         $this->invokeProtectedMethod($this->service, 'validateUrl', ['http://10.0.0.1/page']);
+    }
+
+    /** @test */
+    public function it_allows_localhost_urls_in_local_environment()
+    {
+        app()->detectEnvironment(fn () => 'local');
+
+        $this->invokeProtectedMethod($this->service, 'validateUrl', ['http://localhost/page']);
+
+        $this->assertTrue(true);
     }
 
     /** @test */
@@ -361,6 +397,39 @@ class ScannerServiceTest extends TestCase
 
         // The code checks for 'LinkHasText' in the code field
         $this->assertStringContainsString('descriptive text', $recommendation);
+    }
+
+    /** @test */
+    public function it_determines_max_pages_as_one_for_quick_scans()
+    {
+        $scan = new \App\Models\Scan(['scan_type' => \App\Models\Scan::TYPE_QUICK]);
+
+        $maxPages = $this->invokeProtectedMethod($this->service, 'determineMaxPages', [$scan]);
+
+        $this->assertEquals(1, $maxPages);
+    }
+
+    /** @test */
+    public function it_determines_max_pages_from_user_plan_for_full_scans()
+    {
+        $user = new \App\Models\User(['plan' => 'monthly']);
+        $scan = new \App\Models\Scan(['scan_type' => \App\Models\Scan::TYPE_FULL]);
+        $scan->setRelation('user', $user);
+
+        $maxPages = $this->invokeProtectedMethod($this->service, 'determineMaxPages', [$scan]);
+
+        $this->assertEquals($user->getMaxPagesPerScan(), $maxPages);
+    }
+
+    /** @test */
+    public function it_determines_max_pages_for_guest_scans()
+    {
+        $scan = new \App\Models\Scan(['scan_type' => \App\Models\Scan::TYPE_FULL]);
+        $scan->setRelation('user', null);
+
+        $maxPages = $this->invokeProtectedMethod($this->service, 'determineMaxPages', [$scan]);
+
+        $this->assertEquals(5, $maxPages);
     }
 
     /** @test */

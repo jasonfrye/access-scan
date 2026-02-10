@@ -5,12 +5,13 @@ namespace App\Mail;
 use App\Models\Scan;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class ScoreImproveMail extends Mailable
+class ScoreImproveMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 

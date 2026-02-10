@@ -3,15 +3,20 @@
 namespace App\Jobs;
 
 use App\Models\Scan;
+use App\Services\NotificationService;
 use App\Services\ScannerService;
-use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class RunScanJob implements ShouldQueue
+class RunScanJob implements ShouldBeUnique, ShouldQueue
 {
-    use Queueable;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
      * The number of times the job may be attempted.
@@ -22,6 +27,11 @@ class RunScanJob implements ShouldQueue
      * The number of seconds to wait before retrying the job.
      */
     public int $backoff = 60;
+
+    /**
+     * The number of seconds the job can run before timing out.
+     */
+    public int $timeout = 900;
 
     /**
      * The scan to process.
@@ -42,7 +52,7 @@ class RunScanJob implements ShouldQueue
      */
     public function uniqueId(): string
     {
-        return 'scan-' . $this->scan->id;
+        return 'scan-'.$this->scan->id;
     }
 
     /**
@@ -50,15 +60,15 @@ class RunScanJob implements ShouldQueue
      */
     public function tags(): array
     {
-        return ['scan', 'scan-' . $this->scan->id, 'user-' . $this->scan->user_id];
+        return ['scan', 'scan-'.$this->scan->id, 'user-'.$this->scan->user_id];
     }
 
     /**
      * Execute the job.
      */
-    public function handle($scanner, $notifications): void
+    public function handle(ScannerService $scanner, NotificationService $notifications): void
     {
-        Log::info('Starting scan job', ['scan_id' => $this->scan->id]);
+        Log::info('Starting scan job', ['scan_id' => $this->scan->id, 'attempt' => $this->attempts()]);
 
         try {
             // Run the scan
@@ -76,40 +86,54 @@ class RunScanJob implements ShouldQueue
         } catch (Throwable $e) {
             Log::error('Scan job failed', [
                 'scan_id' => $this->scan->id,
+                'attempt' => $this->attempts(),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            // If we haven't exceeded max attempts, rethrow to trigger retry
-            if ($this->attempts() < $this->maxAttempts) {
-                throw $e;
-            }
-
-            // Mark as failed after all retries exhausted
-            $this->scan->markAsFailed('Maximum retry attempts exceeded: ' . $e->getMessage());
+            // Rethrow to trigger retry
+            throw $e;
         }
+    }
+
+    /**
+     * Handle a job failure.
+     */
+    public function failed(?Throwable $exception = null): void
+    {
+        Log::error('Scan job failed after all retry attempts', [
+            'scan_id' => $this->scan->id,
+            'error' => $exception?->getMessage(),
+        ]);
+
+        // Mark scan as failed
+        $this->scan->markAsFailed(
+            $exception
+                ? 'Scan failed: '.$exception->getMessage()
+                : 'Scan failed after maximum retry attempts'
+        );
     }
 
     /**
      * Check for score regression or significant improvement.
      */
-    protected function checkForRegression(\App\Services\NotificationService $notifications): void
+    protected function checkForRegression(NotificationService $notifications): void
     {
         $user = $this->scan->user;
 
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
         // Get the previous scan for the same URL
         $previousScan = $user->scans()
             ->where('id', '!=', $this->scan->id)
-            ->where('url', 'like', '%' . parse_url($this->scan->url, PHP_URL_HOST) . '%')
+            ->where('url', 'like', '%'.parse_url($this->scan->url, PHP_URL_HOST).'%')
             ->completed()
             ->latest('completed_at')
             ->first();
 
-        if (!$previousScan) {
+        if (! $previousScan) {
             return;
         }
 

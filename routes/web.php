@@ -1,15 +1,13 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ScanController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ReportController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ScanController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', [ScanController::class, 'index'])->name('home');
 
 Route::get('/pricing', [BillingController::class, 'pricing'])->name('billing.pricing');
 Route::get('/scan', [ScanController::class, 'index'])->name('scan.index');
@@ -28,7 +26,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/scan', [DashboardController::class, 'storeScan'])->name('dashboard.scan.store');
     Route::get('/dashboard/scan/{scan}', [DashboardController::class, 'showScan'])->name('dashboard.scan');
-    
+    Route::get('/dashboard/scan/{scan}/page/{scanPage}', [DashboardController::class, 'showScanPage'])->name('dashboard.scan.page');
+
     // Scheduled scans (paid feature)
     Route::post('/dashboard/scheduled-scans', [DashboardController::class, 'storeScheduledScan'])
         ->name('dashboard.scheduled.store')
@@ -39,7 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/dashboard/scheduled-scans/{schedule}', [DashboardController::class, 'destroyScheduledScan'])
         ->name('dashboard.scheduled.destroy')
         ->middleware('plan.feature:scheduled_scans');
-    
+
     // Report downloads (paid feature)
     Route::get('/dashboard/scan/{scan}/export/pdf', [ReportController::class, 'pdf'])
         ->name('report.pdf')
@@ -50,7 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard/scan/{scan}/export/json', [ReportController::class, 'json'])
         ->name('report.json')
         ->middleware('plan.feature:json_export');
-    
+
     // Billing
     Route::get('/billing', [BillingController::class, 'index'])->name('billing.index');
     Route::post('/billing/subscribe', [BillingController::class, 'subscribe'])->name('billing.subscribe');
@@ -73,5 +72,10 @@ Route::middleware('auth')->group(function () {
 Route::get('/api/docs', function () {
     return view('api.docs');
 })->name('api.docs');
+
+// Test pages for scanner validation (static pages with intentional accessibility issues)
+Route::get('/test/good', fn () => view('test-pages.good'))->name('test.good');
+Route::get('/test/mediocre', fn () => view('test-pages.mediocre'))->name('test.mediocre');
+Route::get('/test/poor', fn () => view('test-pages.poor'))->name('test.poor');
 
 require __DIR__.'/auth.php';

@@ -18,6 +18,7 @@
                 </div>
             </div>
 
+            @auth
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
@@ -61,9 +62,11 @@
                     </svg>
                 </button>
             </div>
+            @endauth
         </div>
     </div>
 
+    @auth
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
@@ -97,4 +100,5 @@
             </div>
         </div>
     </div>
+    @endauth
 </nav>

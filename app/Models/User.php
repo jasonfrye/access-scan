@@ -4,15 +4,16 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -81,7 +82,23 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the user's plan.
+     * Get the user's reports.
+     */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    /**
+     * Get the Plan model for this user.
+     */
+    public function planModel(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class, 'plan', 'slug');
+    }
+
+    /**
+     * Get the user's plan slug.
      */
     public function getPlanAttribute($value): string
     {
@@ -101,7 +118,7 @@ class User extends Authenticatable
      */
     public function hasScansRemaining(): bool
     {
-        return $this->scan_count < $this->scan_limit;
+        return $this->scan_count < $this->getScanLimit();
     }
 
     /**
@@ -121,26 +138,68 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the scan limit based on plan.
+     * Get the scan limit from the Plan model.
      */
     public function getScanLimit(): int
     {
+        try {
+            $plan = Plan::findBySlug($this->plan);
+
+            if ($plan) {
+                return $plan->scan_limit;
+            }
+        } catch (\Throwable) {
+            // Plan table may not exist (e.g., during testing)
+        }
+
         return match ($this->plan) {
             'monthly' => 50,
-            'lifetime' => 100,
-            default => $this->scan_limit ?? 5, // Free plan default
+            'lifetime' => 1000,
+            default => 5,
         };
     }
 
     /**
-     * Get the max pages per scan based on plan.
+     * Get the max pages per scan from the Plan model.
      */
     public function getMaxPagesPerScan(): int
     {
+        try {
+            $plan = Plan::findBySlug($this->plan);
+
+            if ($plan) {
+                return $plan->page_limit_per_scan;
+            }
+        } catch (\Throwable) {
+            // Plan table may not exist (e.g., during testing)
+        }
+
         return match ($this->plan) {
             'monthly' => 100,
             'lifetime' => 500,
-            default => 5, // Free plan limited to 5 pages
+            default => 5,
+        };
+    }
+
+    /**
+     * Get the scheduled scan limit from the Plan model.
+     */
+    public function getScheduledScanLimit(): int
+    {
+        try {
+            $plan = Plan::findBySlug($this->plan);
+
+            if ($plan) {
+                return $plan->scheduled_scan_limit;
+            }
+        } catch (\Throwable) {
+            // Plan table may not exist (e.g., during testing)
+        }
+
+        return match ($this->plan) {
+            'monthly' => 5,
+            'lifetime' => 10,
+            default => 0,
         };
     }
 }

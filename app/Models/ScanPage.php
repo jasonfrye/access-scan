@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -23,6 +23,9 @@ class ScanPage extends Model
         'http_status',
         'dom_depth',
         'load_time_ms',
+        'error_message',
+        'scanned_at',
+        'score',
     ];
 
     protected $casts = [
@@ -32,6 +35,9 @@ class ScanPage extends Model
         'notices_count' => 'integer',
         'dom_depth' => 'integer',
         'load_time_ms' => 'integer',
+        'http_status' => 'integer',
+        'score' => 'float',
+        'scanned_at' => 'datetime',
     ];
 
     /**

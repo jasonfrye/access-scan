@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Scan;
-use App\Models\GuestScan;
 use App\Models\EmailLead;
-use App\Models\Plan;
-use App\Services\ScannerService;
-use Illuminate\Http\Request;
+use App\Models\GuestScan;
+use App\Models\Scan;
+use App\Services\UrlValidator;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Validator;
 
 class ScanController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     */
+    public function __construct(protected UrlValidator $urlValidator) {}
+
     /**
      * Display the scan form or redirect to results.
      */
@@ -42,7 +46,7 @@ class ScanController extends Controller
         $url = $request->input('url');
 
         // Validate URL
-        $validation = $this->validateUrl($url);
+        $validation = $this->urlValidator->validateForScanning($url);
         if ($validation !== true) {
             return response()->json([
                 'success' => false,
@@ -50,14 +54,19 @@ class ScanController extends Controller
             ], 422);
         }
 
-        // Check rate limit for guest scans
-        $rateLimitKey = 'guest-scan:' . $request->ip();
-        if (!RateLimiter::attempt($rateLimitKey, 1, now()->hours(24))) {
+        // Check rate limit for guest scans (1 scan per 24 hours)
+        $rateLimitKey = 'guest-scan:'.$request->ip();
+        $decaySeconds = 60 * 60 * 24; // 24 hours
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 1)) {
             return response()->json([
                 'success' => false,
                 'error' => 'Rate limit exceeded. You can run 1 free scan per 24 hours.',
             ], 429);
         }
+
+        // Hit the rate limiter
+        RateLimiter::hit($rateLimitKey, $decaySeconds);
 
         try {
             // Create scan record
@@ -77,6 +86,9 @@ class ScanController extends Controller
 
             // Dispatch scan job
             dispatch(new \App\Jobs\RunScanJob($scan));
+
+            // Store scan ID in session so it can be attached after registration
+            $request->session()->put('guest_scan_id', $scan->id);
 
             Log::info('Guest scan initiated', [
                 'scan_id' => $scan->id,
@@ -109,10 +121,10 @@ class ScanController extends Controller
     public function show(Request $request, Scan $scan): JsonResponse
     {
         // Check if user can view this scan
-        if (!$scan->user_id) {
+        if (! $scan->user_id) {
             // Guest scan - check IP or email
             $guestScan = $scan->guestScans()->first();
-            if (!$guestScan) {
+            if (! $guestScan) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Scan not found',
@@ -158,7 +170,7 @@ class ScanController extends Controller
      */
     public function results(Scan $scan)
     {
-        if (!$scan->isCompleted()) {
+        if (! $scan->isCompleted()) {
             return view('scan.pending', [
                 'scan' => $scan,
             ]);
@@ -214,39 +226,9 @@ class ScanController extends Controller
     }
 
     /**
-     * Validate URL for scanning.
-     */
-    protected function validateUrl(string $url): string|true
-    {
-        // Check for localhost
-        if (preg_match('/(localhost|127\.0\.0\.1|\.local|\.test)/i', $url)) {
-            return 'Cannot scan localhost or local URLs';
-        }
-
-        // Check for IP addresses
-        if (preg_match('/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $url)) {
-            return 'Cannot scan IP addresses';
-        }
-
-        // Check protocol
-        $scheme = parse_url($url, PHP_URL_SCHEME);
-        if (!in_array($scheme, ['http', 'https'])) {
-            return 'URL must use HTTP or HTTPS protocol';
-        }
-
-        // Check for valid domain
-        $host = parse_url($url, PHP_URL_HOST);
-        if (!$host || !filter_var('http://' . $host, FILTER_VALIDATE_URL)) {
-            return 'Invalid domain name';
-        }
-
-        return true;
-    }
-
-    /**
      * API endpoint for scan status (polling).
      */
-    public function status(Scan $scan): JsonResponse
+    public function status(Request $request, Scan $scan): JsonResponse
     {
         return $this->show($request, $scan);
     }
@@ -256,7 +238,7 @@ class ScanController extends Controller
      */
     public function cancel(Request $request, Scan $scan): JsonResponse
     {
-        if (!$scan->isPending()) {
+        if (! $scan->isPending()) {
             return response()->json([
                 'success' => false,
                 'error' => 'Cannot cancel a scan that is not pending',

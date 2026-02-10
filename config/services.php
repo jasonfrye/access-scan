@@ -28,6 +28,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'pa11y' => [
+        'npx_path' => env('NPX_PATH', '/usr/local/bin/npx'),
+        'node_bin_dir' => env('NODE_BIN_DIR', '/usr/local/bin'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

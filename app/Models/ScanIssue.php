@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ScanIssue extends Model
@@ -24,34 +24,45 @@ class ScanIssue extends Model
         'impact',
         'recommendation',
         'help_url',
+        'is_fixed',
+        'is_ignored',
     ];
 
     protected $casts = [
         'type' => 'string',
         'wcag_level' => 'string',
         'impact' => 'string',
+        'is_fixed' => 'boolean',
+        'is_ignored' => 'boolean',
     ];
 
     /**
      * Issue type constants.
      */
     const TYPE_ERROR = 'error';
+
     const TYPE_WARNING = 'warning';
+
     const TYPE_NOTICE = 'notice';
 
     /**
      * WCAG level constants.
      */
     const LEVEL_A = 'A';
+
     const LEVEL_AA = 'AA';
+
     const LEVEL_AAA = 'AAA';
 
     /**
      * Impact constants.
      */
     const IMPACT_CRITICAL = 'critical';
+
     const IMPACT_SERIOUS = 'serious';
+
     const IMPACT_MODERATE = 'moderate';
+
     const IMPACT_MINOR = 'minor';
 
     /**
@@ -140,7 +151,7 @@ class ScanIssue extends Model
     public function getWcagReferenceAttribute(): string
     {
         $level = $this->wcag_level ?? 'A';
-        
+
         // Extract the numeric parts from the stored values
         // Pa11y stores: principle='1', guideline='1_1', criterion='1_1_1'
         // WCAG reference format: principle.guideline.criterion (e.g., "1.1.1")

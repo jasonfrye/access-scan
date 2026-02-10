@@ -3,10 +3,10 @@
 namespace App\Livewire\Scan;
 
 use App\Models\Scan;
-use Livewire\Component;
-use Livewire\Attributes\Url;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
+use Livewire\Component;
 
 #[Layout('layouts.guest')]
 class Index extends Component
@@ -26,14 +26,14 @@ class Index extends Component
     public function loadScan()
     {
         $this->scan = Scan::where('id', $this->scanId)
-            ->where('is_completed', true)
+            ->where('status', Scan::STATUS_COMPLETED)
             ->first();
     }
 
     #[On('scan-created')]
-    public function updatedScanId($id)
+    public function updatedScanId(int $scanId)
     {
-        $this->scanId = $id;
+        $this->scanId = $scanId;
         $this->loadScan();
     }
 

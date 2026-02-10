@@ -1,80 +1,84 @@
-@extends('layouts.app')
+@extends('layouts.guest')
 
 @section('title', 'Dashboard - AccessScan')
 
 @section('content')
-<div class="py-8">
+<div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p class="text-gray-600 mt-1">Manage your accessibility scans and track your progress</p>
+            <h1 class="text-4xl font-bold text-gray-900">Dashboard</h1>
+            <p class="text-gray-600 mt-2 text-lg">Track your accessibility progress and manage scans</p>
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Total Scans -->
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Total Scans</p>
-                        <p class="text-3xl font-bold text-gray-900">{{ number_format($stats['total_scans']) }}</p>
-                    </div>
-                    <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-white rounded-2xl shadow-sm p-6 border-2 border-gray-100 hover:border-blue-200 transition-colors">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
                     </div>
+                    <div class="text-sm text-gray-500 font-mono">TOTAL</div>
+                </div>
+                <div>
+                    <p class="text-3xl font-bold text-gray-900 mb-1">{{ number_format($stats['total_scans']) }}</p>
+                    <p class="text-sm text-gray-500">Scans Completed</p>
                 </div>
             </div>
 
             <!-- Average Score -->
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Average Score</p>
-                        <p class="text-3xl font-bold text-gray-900">{{ $stats['average_score'] ? number_format($stats['average_score'], 0) : 'N/A' }}</p>
-                    </div>
+            <div class="bg-white rounded-2xl shadow-sm p-6 border-2 border-gray-100 hover:border-green-200 transition-colors">
+                <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
+                    <div class="text-sm text-gray-500 font-mono">AVG</div>
+                </div>
+                <div>
+                    <p class="text-3xl font-bold text-gray-900 mb-1">{{ $stats['average_score'] ? number_format($stats['average_score'], 0) : 'N/A' }}</p>
+                    <p class="text-sm text-gray-500">Average Score</p>
                 </div>
             </div>
 
             <!-- Scans Remaining -->
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Scans Remaining</p>
-                        <p class="text-3xl font-bold text-gray-900">{{ $stats['scans_remaining'] }}</p>
-                    </div>
-                    <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-white rounded-2xl shadow-sm p-6 border-2 border-gray-100 hover:border-amber-200 transition-colors">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
+                    <div class="text-sm text-gray-500 font-mono">LEFT</div>
                 </div>
-                <div class="mt-3">
-                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-yellow-500 transition-all" style="width: {{ ($stats['scans_remaining'] / max($stats['scan_limit'], 1)) * 100 }}%"></div>
+                <div>
+                    <p class="text-3xl font-bold text-gray-900 mb-1">{{ $stats['scans_remaining'] }}</p>
+                    <p class="text-sm text-gray-500">Scans Remaining</p>
+                    <div class="mt-3">
+                        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-amber-500 transition-all" style="width: {{ ($stats['scans_remaining'] / max($stats['scan_limit'], 1)) * 100 }}%"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Completed Scans -->
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Completed</p>
-                        <p class="text-3xl font-bold text-gray-900">{{ number_format($stats['completed_scans']) }}</p>
-                    </div>
-                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <!-- Issues Found -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border-2 border-gray-100 hover:border-red-200 transition-colors">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                     </div>
+                    <div class="text-sm text-gray-500 font-mono">ISSUES</div>
+                </div>
+                <div>
+                    <p class="text-3xl font-bold text-gray-900 mb-1">{{ number_format($stats['completed_scans'] ?? 0) }}</p>
+                    <p class="text-sm text-gray-500">This Month</p>
                 </div>
             </div>
         </div>
@@ -82,60 +86,82 @@
         <div class="grid lg:grid-cols-3 gap-8">
             <!-- Main Content: Scan History -->
             <div class="lg:col-span-2">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-                    <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                        <h2 class="text-lg font-bold text-gray-900">Scan History</h2>
-                        <a href="{{ route('home') }}" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
-                            New Scan
+                <div class="bg-white rounded-2xl shadow-sm border-2 border-gray-100">
+                    <div class="p-6 border-b-2 border-gray-100 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">Scan History</h2>
+                            <p class="text-sm text-gray-500 mt-1">Your recent accessibility scans</p>
+                        </div>
+                        <a href="{{ route('home') }}" class="px-5 py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-all hover:scale-105">
+                            + New Scan
                         </a>
                     </div>
 
                     @if($scans->count() > 0)
-                        <div class="divide-y divide-gray-100">
+                        <div class="divide-y-2 divide-gray-100">
                             @foreach($scans as $scan)
-                                <div class="p-6 hover:bg-gray-50 transition-colors">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-4">
-                                            <!-- Score Badge -->
-                                            <div class="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-lg {{ $scan->grade === 'A' ? 'bg-green-100 text-green-700' : ($scan->grade === 'B' ? 'bg-green-50 text-green-600' : ($scan->grade === 'C' ? 'bg-yellow-100 text-yellow-700' : ($scan->grade === 'D' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700')) }}">
-                                                {{ $scan->grade ?? 'N/A' }}
+                                <div class="p-6 hover:bg-blue-50/30 transition-all group">
+                                    <div class="flex items-center justify-between gap-6">
+                                        <div class="flex items-center gap-5">
+                                            <!-- Grade Badge with Report Card Style -->
+                                            <div class="relative flex-shrink-0">
+                                                <div class="w-16 h-20 rounded-lg flex flex-col items-center justify-center font-bold shadow-md {{ $scan->grade === 'A' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : ($scan->grade === 'B' ? 'bg-gradient-to-br from-green-400 to-green-500 text-white' : ($scan->grade === 'C' ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white' : ($scan->grade === 'D' ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'))) }}">
+                                                    <div class="text-3xl">{{ $scan->grade ?? '?' }}</div>
+                                                    <div class="text-xs font-normal opacity-90">GRADE</div>
+                                                </div>
                                             </div>
 
-                                            <div>
-                                                <a href="{{ route('dashboard.scan', $scan) }}" class="font-medium text-gray-900 hover:text-indigo-600 transition-colors">
+                                            <div class="flex-1 min-w-0">
+                                                <a href="{{ route('dashboard.scan', $scan) }}" class="font-semibold text-gray-900 hover:text-blue-600 transition-colors text-lg group-hover:underline">
                                                     {{ parse_url($scan->url, PHP_URL_HOST) }}
                                                 </a>
-                                                <p class="text-sm text-gray-500">{{ parse_url($scan->url, PHP_URL_PATH) ?: '/' }}</p>
-                                                <p class="text-xs text-gray-400 mt-1">
-                                                    {{ $scan->completed_at?->diffForHumans() ?? $scan->created_at->diffForHumans() }}
-                                                </p>
+                                                <p class="text-sm text-gray-600 font-mono truncate">{{ parse_url($scan->url, PHP_URL_PATH) ?: '/' }}</p>
+                                                <div class="flex items-center gap-3 mt-2">
+                                                    <span class="text-xs text-gray-400 flex items-center gap-1">
+                                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        {{ $scan->completed_at?->diffForHumans() ?? $scan->created_at->diffForHumans() }}
+                                                    </span>
+                                                    <span class="text-xs text-gray-400">•</span>
+                                                    <span class="text-xs text-gray-400">{{ $scan->pages_scanned }} pages</span>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div class="text-right">
-                                            <div class="text-2xl font-bold text-gray-900">{{ number_format($scan->score, 0) }}</div>
-                                            <div class="text-sm text-gray-500">/100 score</div>
+                                        <div class="text-right flex-shrink-0">
+                                            <div class="text-3xl font-bold text-gray-900">{{ number_format($scan->score, 0) }}</div>
+                                            <div class="text-sm text-gray-500 font-medium">/100</div>
                                             <div class="text-xs text-gray-400 mt-1">
-                                                {{ $scan->pages_scanned }} pages • {{ $scan->issues_found }} issues
+                                                {{ $scan->issues_found }} {{ Str::plural('issue', $scan->issues_found) }}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Issue Summary -->
-                                    <div class="mt-4 flex items-center gap-4 text-sm">
+                                    <!-- Issue Summary Badges -->
+                                    <div class="mt-4 flex items-center gap-2 flex-wrap ml-20">
                                         @if($scan->errors_count > 0)
-                                            <span class="px-2 py-1 bg-red-50 text-red-700 rounded-lg text-xs font-medium">
-                                                {{ $scan->errors_count }} errors
+                                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                                </svg>
+                                                {{ $scan->errors_count }} {{ Str::plural('error', $scan->errors_count) }}
                                             </span>
                                         @endif
                                         @if($scan->warnings_count > 0)
-                                            <span class="px-2 py-1 bg-yellow-50 text-yellow-700 rounded-lg text-xs font-medium">
-                                                {{ $scan->warnings_count }} warnings
+                                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">
+                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                                </svg>
+                                                {{ $scan->warnings_count }} {{ Str::plural('warning', $scan->warnings_count) }}
                                             </span>
                                         @endif
                                         @if($scan->notices_count > 0)
-                                            <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium">
-                                                {{ $scan->notices_count }} notices
+                                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                                </svg>
+                                                {{ $scan->notices_count }} {{ Str::plural('notice', $scan->notices_count) }}
                                             </span>
                                         @endif
                                     </div>
@@ -148,16 +174,19 @@
                             {{ $scans->links() }}
                         </div>
                     @else
-                        <div class="p-12 text-center">
-                            <div class="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="p-16 text-center">
+                            <div class="w-20 h-20 mx-auto bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center mb-6">
+                                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
                             </div>
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">No scans yet</h3>
-                            <p class="text-gray-500 mb-4">Run your first accessibility scan to get started</p>
-                            <a href="{{ route('home') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors">
-                                Run First Scan
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">No Scans Yet</h3>
+                            <p class="text-gray-600 mb-6 max-w-sm mx-auto">Ready to check your website's accessibility? Run your first scan now.</p>
+                            <a href="{{ route('home') }}" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all hover:scale-105">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Run Your First Scan
                             </a>
                         </div>
                     @endif
@@ -167,20 +196,42 @@
             <!-- Sidebar -->
             <div class="space-y-6">
                 <!-- Quick Scan Widget -->
-                <div class="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl p-6 text-white">
-                    <h3 class="font-bold text-lg mb-2">Quick Scan</h3>
-                    <p class="text-white/80 text-sm mb-4">Check another website for accessibility issues</p>
-                    <form action="{{ route('dashboard.scan.store') }}" method="POST" class="flex gap-2">
+                <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-6 text-white shadow-lg">
+                    <div class="flex items-center gap-2 mb-3">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                        </svg>
+                        <h3 class="font-bold text-lg">Quick Scan</h3>
+                    </div>
+                    <p class="text-blue-100 text-sm mb-4">Scan another website instantly</p>
+                    <form action="{{ route('dashboard.scan.store') }}" method="POST" class="space-y-3" x-data="{ submitting: false }" @submit="submitting = true">
                         @csrf
                         <input
                             type="url"
                             name="url"
                             placeholder="https://example.com"
-                            class="flex-1 px-3 py-2 rounded-lg text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50"
+                            class="w-full px-4 py-3 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50 font-mono"
                             required
+                            :disabled="submitting"
                         />
-                        <button type="submit" class="px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg hover:bg-gray-100 transition-colors">
-                            Scan
+                        <button type="submit" class="w-full px-4 py-3 bg-white text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-all hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100" :disabled="submitting">
+                            <template x-if="!submitting">
+                                <span class="flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                    Start Scan
+                                </span>
+                            </template>
+                            <template x-if="submitting">
+                                <span class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Starting Scan...
+                                </span>
+                            </template>
                         </button>
                     </form>
                 </div>
@@ -258,26 +309,44 @@
                 @endif
 
                 <!-- Account Info -->
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h3 class="font-bold text-gray-900 mb-4">Account</h3>
-                    <div class="space-y-3 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Plan</span>
-                            <span class="font-medium text-gray-900 capitalize">{{ Auth::user()->plan }}</span>
+                <div class="bg-white rounded-2xl shadow-sm p-6 border-2 border-gray-100">
+                    <div class="flex items-center gap-2 mb-4">
+                        <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                        </svg>
+                        <h3 class="font-bold text-gray-900">Your Plan</h3>
+                    </div>
+                    <div class="space-y-4 text-sm">
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+                            <div class="text-xs text-blue-600 font-semibold uppercase mb-1">Current Plan</div>
+                            <div class="text-2xl font-bold text-blue-900 capitalize">{{ Auth::user()->plan }}</div>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Scans Used</span>
-                            <span class="font-medium text-gray-900">{{ Auth::user()->scan_count }} / {{ Auth::user()->scan_limit }}</span>
-                        </div>
-                        @if(Auth::user()->trial_ends_at)
-                            <div class="flex justify-between">
-                                <span class="text-gray-500">Trial Ends</span>
-                                <span class="font-medium text-gray-900">{{ Auth::user()->trial_ends_at->diffForHumans() }}</span>
+
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Scans Used
+                                </span>
+                                <span class="font-bold text-gray-900">{{ Auth::user()->scan_count }}<span class="text-gray-400 font-normal"> / {{ Auth::user()->scan_limit }}</span></span>
                             </div>
-                        @endif
-                        <div class="pt-3 border-t border-gray-100">
-                            <a href="{{ route('profile.edit') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
-                                Manage Account →
+
+                            @if(Auth::user()->trial_ends_at)
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Trial Ends</span>
+                                    <span class="font-semibold text-amber-600">{{ Auth::user()->trial_ends_at->diffForHumans() }}</span>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="pt-4 border-t-2 border-gray-100 flex gap-2">
+                            <a href="{{ route('billing.pricing') }}" class="flex-1 text-center px-3 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-xs">
+                                Upgrade
+                            </a>
+                            <a href="{{ route('profile.edit') }}" class="flex-1 text-center px-3 py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors text-xs">
+                                Settings
                             </a>
                         </div>
                     </div>

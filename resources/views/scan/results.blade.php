@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(auth()->check() ? 'layouts.app' : 'layouts.guest')
 
 @section('title', 'Scan Results - ' . $scan->domain . ' - AccessScan')
 

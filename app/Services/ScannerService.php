@@ -3,11 +3,10 @@
 namespace App\Services;
 
 use App\Models\Scan;
-use App\Models\ScanPage;
 use App\Models\ScanIssue;
-use Illuminate\Support\Facades\Process;
+use App\Models\ScanPage;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Process;
 
 class ScannerService
 {
@@ -33,18 +32,33 @@ class ScannerService
     {
         $this->validateUrl($url);
 
-        $result = Process::run(
-            $this->buildPa11yCommand($url)
-        );
+        $command = $this->buildPa11yCommand($url);
 
-        if ($result->failed()) {
+        Log::debug('Pa11y command', ['command' => $command]);
+
+        $nodeBinDir = config('services.pa11y.node_bin_dir', '/usr/local/bin');
+        $result = Process::env(['PATH' => $nodeBinDir.':/usr/local/bin:/usr/bin:/bin'])->run($command);
+
+        // Pa11y exit codes: 0 = no issues, 1 = tool error, 2 = issues found
+        $exitCode = $result->exitCode();
+
+        Log::debug('Pa11y result', [
+            'url' => $url,
+            'exit_code' => $exitCode,
+            'stdout_length' => strlen($result->output()),
+            'stdout_preview' => substr($result->output(), 0, 500),
+            'stderr_preview' => substr($result->errorOutput(), 0, 500),
+        ]);
+
+        if ($exitCode !== 0 && $exitCode !== 2) {
             Log::error('Pa11y scan failed', [
                 'url' => $url,
+                'exit_code' => $exitCode,
                 'output' => $result->output(),
                 'error' => $result->errorOutput(),
             ]);
 
-            throw new \RuntimeException('Scan failed: ' . $result->errorOutput());
+            throw new \RuntimeException('Scan failed (exit code '.$exitCode.'): '.$result->errorOutput());
         }
 
         return $this->parsePa11yOutput($result->output());
@@ -113,7 +127,7 @@ class ScannerService
 
         // Determine how many pages to scan based on scan type and plan
         $maxPages = $this->determineMaxPages($scan);
-        
+
         // For single-page scans, just scan the main URL
         if ($maxPages === 1) {
             $result = $this->scanPage($url);
@@ -123,7 +137,7 @@ class ScannerService
             foreach ($result['issues'] ?? [] as $issue) {
                 $this->storeIssue($page, $issue);
             }
-            
+
             return $pages;
         }
 
@@ -131,7 +145,7 @@ class ScannerService
         $crawler = $this->getCrawler();
         $crawler->setMaxPages($maxPages);
         $crawler->setMaxDepth(3); // Crawl up to 3 levels deep
-        
+
         $crawlResult = $crawler->crawl($url);
 
         Log::info('Crawl completed', [
@@ -143,7 +157,7 @@ class ScannerService
         foreach ($crawlResult['pages'] as $pageInfo) {
             try {
                 $result = $this->scanPage($pageInfo['url']);
-                
+
                 $page = $this->storePageResult($scan, $pageInfo['url'], $result, [
                     'title' => $pageInfo['title'] ?? null,
                 ]);
@@ -159,7 +173,7 @@ class ScannerService
                     'url' => $pageInfo['url'],
                     'error' => $e->getMessage(),
                 ]);
-                
+
                 // Store failed page
                 $page = ScanPage::create([
                     'scan_id' => $scan->id,
@@ -183,15 +197,15 @@ class ScannerService
      */
     protected function determineMaxPages(Scan $scan): int
     {
-        // Single-page scans always scan 1 page
-        if ($scan->type === 'single') {
+        // Quick scans always scan 1 page
+        if ($scan->scan_type === Scan::TYPE_QUICK) {
             return 1;
         }
 
-        // Full scans use the user's plan limit
+        // Full, scheduled, and API scans use the user's max pages per scan
         $user = $scan->user;
         if ($user) {
-            return $user->getScanLimit();
+            return $user->getMaxPagesPerScan();
         }
 
         // Guest scans get a limited number of pages
@@ -204,9 +218,9 @@ class ScannerService
     protected function getCrawler(): LinkCrawler
     {
         if ($this->crawler === null) {
-            $this->crawler = new LinkCrawler();
+            $this->crawler = new LinkCrawler;
         }
-        
+
         return $this->crawler;
     }
 
@@ -215,14 +229,19 @@ class ScannerService
      */
     protected function storePageResult(Scan $scan, string $url, array $result, array $metadata = []): ScanPage
     {
+        $errors = $result['counts']['error'] ?? 0;
+        $warnings = $result['counts']['warning'] ?? 0;
+        $notices = $result['counts']['notice'] ?? 0;
+
         return ScanPage::create([
             'scan_id' => $scan->id,
             'url' => $url,
             'status' => 'completed',
             'issues_count' => count($result['issues'] ?? []),
-            'errors_count' => $result['counts']['error'] ?? 0,
-            'warnings_count' => $result['counts']['warning'] ?? 0,
-            'notices_count' => $result['counts']['notice'] ?? 0,
+            'errors_count' => $errors,
+            'warnings_count' => $warnings,
+            'notices_count' => $notices,
+            'score' => $this->calculateScore($errors, $warnings, $notices),
             'page_title' => $result['document']['title'] ?? $metadata['title'] ?? null,
             'http_status' => $metadata['http_status'] ?? 200,
         ]);
@@ -255,8 +274,11 @@ class ScannerService
      */
     protected function buildPa11yCommand(string $url): string
     {
+        $npxPath = config('services.pa11y.npx_path', '/usr/local/bin/npx');
+
         return sprintf(
-            'npx pa11y %s --standard WCAG2AA --output JSON --timeout %d',
+            '%s pa11y %s --standard WCAG2AA --reporter json --timeout %d',
+            escapeshellarg($npxPath),
             escapeshellarg($url),
             $this->timeout * 1000 // Convert to milliseconds
         );
@@ -270,11 +292,11 @@ class ScannerService
         $issues = json_decode($output, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException('Invalid JSON output from Pa11y: ' . json_last_error_msg());
+            throw new \RuntimeException('Invalid JSON output from Pa11y: '.json_last_error_msg());
         }
 
         // Handle both single issue and array of issues
-        if (!is_array($issues)) {
+        if (! is_array($issues)) {
             $issues = [];
         }
 
@@ -318,21 +340,35 @@ class ScannerService
                 return $issue['page']['title'] ?? null;
             }
         }
+
         return null;
     }
 
     /**
      * Calculate accessibility score (0-100).
+     *
+     * Uses logarithmic decay so the first few issues have the biggest impact
+     * on score, while additional issues have diminishing returns.
+     *
+     * Pa11y reports most WCAG2AA violations as "error", so weights are
+     * calibrated for that reality:
+     *   5 errors  → ~88    (good site, minor issues)
+     *   15 errors → ~68    (decent site, grade D)
+     *   25 errors → ~52    (mediocre, grade F but close to D)
+     *   40 errors → ~35    (poor)
+     *   60+ errors → ~21   (very poor)
      */
     protected function calculateScore(int $errors, int $warnings, int $notices): float
     {
-        // Weighted formula: errors are 10x more impactful than warnings
-        $weightedIssues = ($errors * 10) + $warnings + ($notices * 0.1);
+        $weightedIssues = ($errors * 2) + ($warnings * 1) + ($notices * 0.25);
 
-        // Start at 100 and deduct based on issues
-        $score = 100 - ($weightedIssues * 0.5);
+        if ($weightedIssues <= 0) {
+            return 100.0;
+        }
 
-        // Ensure score is between 0 and 100
+        // k = 0.013 produces a gentler curve suited for Pa11y's error-heavy output
+        $score = 100 * exp(-0.013 * $weightedIssues);
+
         return max(0, min(100, round($score, 2)));
     }
 
@@ -341,24 +377,26 @@ class ScannerService
      */
     protected function validateUrl(string $url): void
     {
-        // Check for localhost
-        if (preg_match('/(localhost|127\.0\.0\.1|\.local)/i', $url)) {
-            throw new \InvalidArgumentException('Cannot scan localhost URLs');
-        }
+        if (! app()->environment('local')) {
+            // Check for localhost
+            if (preg_match('/(localhost|127\.0\.0\.1|\.local)/i', $url)) {
+                throw new \InvalidArgumentException('Cannot scan localhost URLs');
+            }
 
-        // Check for IP addresses
-        if (preg_match('/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $url)) {
-            throw new \InvalidArgumentException('Cannot scan IP addresses');
+            // Check for IP addresses
+            if (preg_match('/^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $url)) {
+                throw new \InvalidArgumentException('Cannot scan IP addresses');
+            }
         }
 
         // Check for valid URL format
-        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+        if (! filter_var($url, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException('Invalid URL format');
         }
 
         // Check protocol
         $scheme = parse_url($url, PHP_URL_SCHEME);
-        if (!in_array($scheme, ['http', 'https'])) {
+        if (! in_array($scheme, ['http', 'https'])) {
             throw new \InvalidArgumentException('URL must use HTTP or HTTPS protocol');
         }
     }
@@ -371,6 +409,7 @@ class ScannerService
         if (preg_match('/Principle(\d+)/i', $code, $matches)) {
             return $matches[1];
         }
+
         return '';
     }
 
@@ -382,6 +421,7 @@ class ScannerService
         if (preg_match('/Guideline([\d_]+)/i', $code, $matches)) {
             return $matches[1];
         }
+
         return '';
     }
 
@@ -393,6 +433,7 @@ class ScannerService
         if (preg_match('/(\d+_\d+_\d+)/i', $code, $matches)) {
             return $matches[1];
         }
+
         return '';
     }
 
@@ -410,6 +451,7 @@ class ScannerService
         if (stripos($code, 'WCAG2A') !== false) {
             return 'A';
         }
+
         return 'A'; // Default to A
     }
 
@@ -477,7 +519,7 @@ class ScannerService
         $ruleName = strtolower(preg_replace('/[^a-z0-9]/i', '-', $ruleName));
         $ruleName = trim($ruleName, '-');
 
-        return $baseUrl . $ruleName;
+        return $baseUrl.$ruleName;
     }
 
     /**
@@ -486,6 +528,7 @@ class ScannerService
     public function setTimeout(int $seconds): self
     {
         $this->timeout = $seconds;
+
         return $this;
     }
 
@@ -495,6 +538,7 @@ class ScannerService
     public function setMaxPages(int $max): self
     {
         $this->maxPages = $max;
+
         return $this;
     }
 

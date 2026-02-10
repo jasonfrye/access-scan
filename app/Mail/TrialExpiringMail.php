@@ -4,12 +4,13 @@ namespace App\Mail;
 
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class TrialExpiringMail extends Mailable
+class TrialExpiringMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -23,7 +24,7 @@ class TrialExpiringMail extends Mailable
         $subject = match ($this->daysLeft) {
             3 => 'Your AccessScan trial ends in 3 days',
             1 => 'Your AccessScan trial ends tomorrow',
-            default => 'Your AccessScan trial ends in ' . $this->daysLeft . ' days',
+            default => 'Your AccessScan trial ends in '.$this->daysLeft.' days',
         };
 
         return new Envelope(

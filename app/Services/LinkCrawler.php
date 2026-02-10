@@ -2,12 +2,9 @@
 
 namespace App\Services;
 
+use GuzzleHttp\TransferStats;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use League\Uri\UriResolver;
-use League\Uri\UriModifier;
-use Psr\Http\Message\ResponseInterface;
-use GuzzleHttp\Promise\Utils;
 
 class LinkCrawler
 {
@@ -87,7 +84,7 @@ class LinkCrawler
     public function crawl(string $url, ?int $maxPages = null, ?int $maxDepth = null): array
     {
         $this->validateUrl($url);
-        
+
         $this->baseUrl = $url;
         $this->maxPages = $maxPages ?? $this->maxPages;
         $this->maxDepth = $maxDepth ?? $this->maxDepth;
@@ -144,7 +141,7 @@ class LinkCrawler
             ],
         ]);
 
-        while (!empty($this->queue) && count($this->internalUrls) < $this->maxPages) {
+        while (! empty($this->queue) && count($this->internalUrls) < $this->maxPages) {
             $item = array_shift($this->queue);
             $url = $item['url'];
             $depth = $item['depth'];
@@ -163,6 +160,7 @@ class LinkCrawler
             if ($this->isDisallowed($url)) {
                 $this->disallowedUrls[] = $url;
                 $this->processed[$url] = true;
+
                 continue;
             }
 
@@ -170,15 +168,13 @@ class LinkCrawler
 
             try {
                 $response = $client->get($url, [
-                    'on_stats' => function (array $stats) use ($url) {
-                        if ($stats['response'] instanceof ResponseInterface) {
-                            $status = $stats['response']->getStatusCode();
-                            if ($status >= 400) {
-                                $this->failedUrls[$url] = [
-                                    'url' => $url,
-                                    'status' => $status,
-                                ];
-                            }
+                    'on_stats' => function (TransferStats $stats) use ($url) {
+                        $response = $stats->getResponse();
+                        if ($response !== null && $response->getStatusCode() >= 400) {
+                            $this->failedUrls[$url] = [
+                                'url' => $url,
+                                'status' => $response->getStatusCode(),
+                            ];
                         }
                     },
                 ]);
@@ -191,39 +187,43 @@ class LinkCrawler
                         'status' => $status,
                     ];
                     $this->processed[$url] = true;
+
                     continue;
                 }
 
                 // Check content type - only process HTML
                 $contentType = $response->getHeader('Content-Type')[0] ?? '';
-                if (!$this->isHtmlContent($contentType)) {
+                if (! $this->isHtmlContent($contentType)) {
                     $this->processed[$url] = true;
+
                     continue;
                 }
 
+                $html = (string) $response->getBody();
+
                 // Add to internal URLs if we haven't seen it
-                if (!isset($this->internalUrls[$url])) {
+                if (! isset($this->internalUrls[$url])) {
                     $this->internalUrls[$url] = [
                         'url' => $url,
                         'status' => $status,
-                        'title' => $this->extractTitle($response->getBody()->getContents()),
+                        'title' => $this->extractTitle($html),
                     ];
                 }
 
                 // Extract links if we haven't reached max depth
                 if ($depth < $this->maxDepth) {
-                    $links = $this->extractLinks($response->getBody()->getContents(), $url);
-                    
+                    $links = $this->extractLinks($html, $url);
+
                     foreach ($links as $link) {
-                        if (!isset($this->processed[$link]) && !isset($this->queue[$link])) {
+                        if (! isset($this->processed[$link]) && ! isset($this->queue[$link])) {
                             // Only add internal links within max depth
                             if ($this->isInternalLink($link) && count($this->internalUrls) < $this->maxPages) {
                                 $this->queue[] = [
                                     'url' => $link,
                                     'depth' => $depth + 1,
                                 ];
-                            } elseif (!$this->isInternalLink($link)) {
-                                if (!isset($this->externalUrls[$link])) {
+                            } elseif (! $this->isInternalLink($link)) {
+                                if (! isset($this->externalUrls[$link])) {
                                     $this->externalUrls[$link] = $link;
                                 }
                             }
@@ -252,8 +252,8 @@ class LinkCrawler
      */
     protected function checkRobotsTxt(): void
     {
-        $robotsUrl = $this->scheme . '://' . $this->host . '/robots.txt';
-        
+        $robotsUrl = $this->scheme.'://'.$this->host.'/robots.txt';
+
         try {
             $response = Http::timeout($this->timeout)
                 ->withHeaders(['User-Agent' => $this->userAgent])
@@ -288,7 +288,7 @@ class LinkCrawler
 
         foreach ($lines as $line) {
             $line = trim($line);
-            
+
             if (empty($line) || str_starts_with($line, '#')) {
                 continue;
             }
@@ -306,25 +306,25 @@ class LinkCrawler
                         $isRelevantBlock = false;
                     }
                     break;
-                
+
                 case 'disallow':
-                    if ($isRelevantBlock && !empty($value)) {
+                    if ($isRelevantBlock && ! empty($value)) {
                         $path = $value;
-                        if (!str_starts_with($path, '/')) {
-                            $path = '/' . $path;
+                        if (! str_starts_with($path, '/')) {
+                            $path = '/'.$path;
                         }
                         $currentDisallowed[] = $path;
                     }
                     break;
-                
+
                 case 'allow':
-                    if ($isRelevantBlock && !empty($value)) {
+                    if ($isRelevantBlock && ! empty($value)) {
                         $path = $value;
-                        if (!str_starts_with($path, '/')) {
-                            $path = '/' . $path;
+                        if (! str_starts_with($path, '/')) {
+                            $path = '/'.$path;
                         }
                         // Remove from disallowed if explicitly allowed
-                        $currentDisallowed = array_filter($currentDisallowed, fn($d) => $d !== $path);
+                        $currentDisallowed = array_filter($currentDisallowed, fn ($d) => $d !== $path);
                     }
                     break;
 
@@ -361,28 +361,34 @@ class LinkCrawler
      */
     protected function extractLinks(string $html, string $baseUrl): array
     {
+        if (empty($html)) {
+            return [];
+        }
+
         $links = [];
-        
+
         // Use DOMDocument for parsing
         libxml_use_internal_errors(true);
-        $doc = new \DOMDocument();
+        $doc = new \DOMDocument;
         @$doc->loadHTML($html);
         libxml_clear_errors();
 
         // Find all anchor tags
         $anchors = $doc->getElementsByTagName('a');
-        
+
         foreach ($anchors as $anchor) {
             $href = $anchor->getAttribute('href');
-            
+
             if (empty($href) || str_starts_with($href, '#') || str_starts_with($href, 'mailto:') || str_starts_with($href, 'tel:')) {
                 continue;
             }
 
             // Resolve relative URLs
             try {
-                $resolvedUrl = UriResolver::resolve($href, UriModifier::host($baseUrl, $this->host));
-                $links[] = (string) $resolvedUrl;
+                $resolvedUrl = $this->resolveUrl($href, $baseUrl);
+                if ($resolvedUrl !== null) {
+                    $links[] = $resolvedUrl;
+                }
             } catch (\Exception $e) {
                 // Skip invalid URLs
                 continue;
@@ -395,12 +401,10 @@ class LinkCrawler
             $rel = strtolower($link->getAttribute('rel'));
             if ($rel === 'canonical') {
                 $href = $link->getAttribute('href');
-                if (!empty($href)) {
-                    try {
-                        $resolvedUrl = UriResolver::resolve($href, UriModifier::host($baseUrl, $this->host));
-                        $links[] = (string) $resolvedUrl;
-                    } catch (\Exception $e) {
-                        continue;
+                if (! empty($href)) {
+                    $resolvedUrl = $this->resolveUrl($href, $baseUrl);
+                    if ($resolvedUrl !== null) {
+                        $links[] = $resolvedUrl;
                     }
                 }
             }
@@ -414,13 +418,17 @@ class LinkCrawler
      */
     protected function extractTitle(string $html): ?string
     {
+        if (empty($html)) {
+            return null;
+        }
+
         libxml_use_internal_errors(true);
-        $doc = new \DOMDocument();
+        $doc = new \DOMDocument;
         @$doc->loadHTML($html);
         libxml_clear_errors();
 
         $titles = $doc->getElementsByTagName('title');
-        
+
         if ($titles->length > 0) {
             return $titles->item(0)->textContent;
         }
@@ -434,14 +442,43 @@ class LinkCrawler
     protected function isInternalLink(string $url): bool
     {
         $parsedUrl = parse_url($url);
-        
+
         // No host means it's relative - treat as internal
-        if (!isset($parsedUrl['host'])) {
+        if (! isset($parsedUrl['host'])) {
             return true;
         }
 
         // Check if same host
         return strtolower($parsedUrl['host']) === strtolower($this->host);
+    }
+
+    /**
+     * Resolve a potentially relative URL against a base URL.
+     */
+    protected function resolveUrl(string $href, string $baseUrl): ?string
+    {
+        // Already absolute
+        if (preg_match('#^https?://#i', $href)) {
+            return strtok($href, '#');
+        }
+
+        $parsed = parse_url($baseUrl);
+        $scheme = $parsed['scheme'] ?? 'https';
+        $host = $parsed['host'] ?? $this->host;
+        $basePath = $parsed['path'] ?? '/';
+
+        if (str_starts_with($href, '//')) {
+            return strtok($scheme.':'.$href, '#');
+        }
+
+        if (str_starts_with($href, '/')) {
+            return strtok($scheme.'://'.$host.$href, '#');
+        }
+
+        // Relative path
+        $baseDir = rtrim(substr($basePath, 0, (int) strrpos($basePath, '/')), '/');
+
+        return strtok($scheme.'://'.$host.$baseDir.'/'.$href, '#');
     }
 
     /**
@@ -468,13 +505,13 @@ class LinkCrawler
         }
 
         // Check for valid URL format
-        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+        if (! filter_var($url, FILTER_VALIDATE_URL)) {
             throw new \InvalidArgumentException('Invalid URL format');
         }
 
         // Check protocol
         $scheme = parse_url($url, PHP_URL_SCHEME);
-        if (!in_array($scheme, ['http', 'https'])) {
+        if (! in_array($scheme, ['http', 'https'])) {
             throw new \InvalidArgumentException('URL must use HTTP or HTTPS protocol');
         }
     }
@@ -485,6 +522,7 @@ class LinkCrawler
     public function setMaxPages(int $max): self
     {
         $this->maxPages = $max;
+
         return $this;
     }
 
@@ -494,6 +532,7 @@ class LinkCrawler
     public function setMaxDepth(int $depth): self
     {
         $this->maxDepth = $depth;
+
         return $this;
     }
 
@@ -503,6 +542,7 @@ class LinkCrawler
     public function setTimeout(int $seconds): self
     {
         $this->timeout = $seconds;
+
         return $this;
     }
 
@@ -512,6 +552,7 @@ class LinkCrawler
     public function setUserAgent(string $userAgent): self
     {
         $this->userAgent = $userAgent;
+
         return $this;
     }
 
