@@ -111,7 +111,7 @@
     <a href="#main-content" class="skip-to-content">Skip to main content</a>
 
     <!-- Navigation -->
-    <nav class="bg-white border-b border-gray-200" role="navigation" aria-label="Main navigation">
+    <nav class="bg-white border-b border-gray-200" role="navigation" aria-label="Main navigation" x-data="{ mobileOpen: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
@@ -125,7 +125,8 @@
                     </a>
                 </div>
 
-                <div class="flex items-center gap-4">
+                <!-- Desktop Nav -->
+                <div class="hidden md:flex items-center gap-4">
                     @auth
                         <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-gray-900 font-medium">Dashboard</a>
                         @unless(auth()->user()->isPaid())
@@ -145,6 +146,36 @@
                         </a>
                     @endauth
                 </div>
+
+                <!-- Mobile Hamburger -->
+                <button @click="mobileOpen = !mobileOpen" class="md:hidden p-2 text-gray-600 hover:text-gray-900" aria-label="Toggle menu" :aria-expanded="mobileOpen">
+                    <svg x-show="!mobileOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    <svg x-show="mobileOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div x-show="mobileOpen" x-collapse class="md:hidden border-t border-gray-200">
+            <div class="px-4 py-3 space-y-1">
+                @auth
+                    <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 font-medium">Dashboard</a>
+                    @unless(auth()->user()->isPaid())
+                        <a href="{{ route('billing.pricing') }}" class="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 font-medium">Pricing</a>
+                    @endunless
+                    <a href="{{ route('billing.index') }}" class="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 font-medium">Billing</a>
+                    <a href="{{ route('profile.edit') }}" class="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 font-medium">Profile</a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 font-medium">Log Out</button>
+                    </form>
+                @else
+                    <a href="{{ route('billing.pricing') }}" class="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 font-medium">Pricing</a>
+                    <a href="{{ route('login') }}" class="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 font-medium">Sign In</a>
+                    <a href="{{ route('register') }}" class="block px-3 py-2 rounded-lg bg-blue-600 text-white text-center font-medium hover:bg-blue-700 transition-colors">
+                        Get Started
+                    </a>
+                @endauth
             </div>
         </div>
     </nav>
