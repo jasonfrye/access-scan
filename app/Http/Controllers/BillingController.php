@@ -75,10 +75,19 @@ class BillingController extends Controller
     {
         $request->validate([
             'plan' => 'required|in:monthly,agency',
+            'interval' => 'required|in:monthly,yearly',
         ]);
 
         $user = Auth::user();
         $plan = Plan::where('slug', $request->plan)->firstOrFail();
+
+        $priceId = $request->interval === 'yearly'
+            ? $plan->stripe_yearly_price_id
+            : $plan->stripe_price_id;
+
+        if (! $priceId) {
+            return back()->with('error', 'This billing interval is not available for the selected plan.');
+        }
 
         if (! $user->stripe_id) {
             $this->stripeService->createCustomer($user);
@@ -86,7 +95,7 @@ class BillingController extends Controller
 
         $checkoutUrl = $this->stripeService->createCheckoutSession(
             $user,
-            $plan->stripe_price_id,
+            $priceId,
             route('billing.success').'?session_id={CHECKOUT_SESSION_ID}',
             route('billing.cancel.show')
         );
@@ -111,7 +120,10 @@ class BillingController extends Controller
 
                 // Handle subscription checkout
                 if ($session->subscription && $session->subscription->status === 'active') {
-                    $plan = Plan::where('stripe_price_id', $session->subscription->items->data[0]->price->id)->first();
+                    $stripePriceId = $session->subscription->items->data[0]->price->id;
+                    $plan = Plan::where('stripe_price_id', $stripePriceId)
+                        ->orWhere('stripe_yearly_price_id', $stripePriceId)
+                        ->first();
 
                     $user->update([
                         'plan' => $plan?->slug ?? 'monthly',

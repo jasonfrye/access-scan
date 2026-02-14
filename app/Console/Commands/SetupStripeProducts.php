@@ -51,15 +51,24 @@ class SetupStripeProducts extends Command
         );
 
         $this->line("  Product ID: {$monthlyProduct->id}");
-        $this->line("  Price ID: {$monthlyPrice->id}");
+        $this->line("  Monthly Price ID: {$monthlyPrice->id}");
         $this->updateEnvFile('STRIPE_PRICE_MONTHLY', $monthlyPrice->id);
+
+        $yearlyPrice = $this->createPrice(
+            $monthlyProduct->id,
+            29000, // $290.00
+            'year'
+        );
+
+        $this->line("  Yearly Price ID: {$yearlyPrice->id}");
+        $this->updateEnvFile('STRIPE_PRICE_YEARLY', $yearlyPrice->id);
         $this->newLine();
 
         // Create Agency Plan
         $this->info('Creating Agency plan...');
         $agencyProduct = $this->createProduct(
             'Access Report Card Agency',
-            'Monthly subscription to Access Report Card Agency with 200 scans per month, API access, and white-label reports'
+            'Subscription to Access Report Card Agency with 200 scans per month, API access, and white-label reports'
         );
 
         $agencyPrice = $this->createPrice(
@@ -69,21 +78,32 @@ class SetupStripeProducts extends Command
         );
 
         $this->line("  Product ID: {$agencyProduct->id}");
-        $this->line("  Price ID: {$agencyPrice->id}");
+        $this->line("  Monthly Price ID: {$agencyPrice->id}");
         $this->updateEnvFile('STRIPE_PRICE_AGENCY', $agencyPrice->id);
+
+        $agencyYearlyPrice = $this->createPrice(
+            $agencyProduct->id,
+            89000, // $890.00
+            'year'
+        );
+
+        $this->line("  Yearly Price ID: {$agencyYearlyPrice->id}");
+        $this->updateEnvFile('STRIPE_PRICE_AGENCY_YEARLY', $agencyYearlyPrice->id);
         $this->newLine();
 
         // Update plans table
         $this->info('Updating plans table...');
-        Plan::where('slug', 'monthly')->update(['stripe_price_id' => $monthlyPrice->id]);
-        Plan::where('slug', 'agency')->update(['stripe_price_id' => $agencyPrice->id]);
+        Plan::where('slug', 'monthly')->update([
+            'stripe_price_id' => $monthlyPrice->id,
+            'stripe_yearly_price_id' => $yearlyPrice->id,
+        ]);
+        Plan::where('slug', 'agency')->update([
+            'stripe_price_id' => $agencyPrice->id,
+            'stripe_yearly_price_id' => $agencyYearlyPrice->id,
+        ]);
 
         $this->newLine();
-        $this->info('✅ Stripe products and prices created successfully!');
-        $this->newLine();
-        $this->line('Add these to your .env file:');
-        $this->line("STRIPE_PRICE_MONTHLY={$monthlyPrice->id}");
-        $this->line("STRIPE_PRICE_AGENCY={$agencyPrice->id}");
+        $this->info('Stripe products and prices created successfully!');
         $this->newLine();
         $this->line('Your .env file has been updated automatically.');
 
