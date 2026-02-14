@@ -88,7 +88,7 @@ class BillingController extends Controller
             $user,
             $plan->stripe_price_id,
             route('billing.success').'?session_id={CHECKOUT_SESSION_ID}',
-            route('billing.cancel')
+            route('billing.cancel.show')
         );
 
         return redirect($checkoutUrl);

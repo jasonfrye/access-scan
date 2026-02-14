@@ -57,7 +57,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/billing', [BillingController::class, 'index'])->name('billing.index');
     Route::post('/billing/subscribe', [BillingController::class, 'subscribe'])->name('billing.subscribe');
     Route::get('/billing/success', [BillingController::class, 'success'])->name('billing.success');
-    Route::get('/billing/cancel', [BillingController::class, 'cancel'])->name('billing.cancel');
+    Route::get('/billing/cancel', [BillingController::class, 'cancel'])->name('billing.cancel.show');
     Route::post('/billing/cancel', [BillingController::class, 'cancelSubscription'])->name('billing.cancel');
     Route::post('/billing/resume', [BillingController::class, 'resumeSubscription'])->name('billing.resume');
     Route::get('/billing/portal', [BillingController::class, 'portal'])->name('billing.portal');
