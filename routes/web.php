@@ -81,6 +81,9 @@ Route::get('/api/docs', function () {
     return view('api.docs');
 })->name('api.docs');
 
+Route::get('/privacy', fn () => view('legal.privacy'))->name('privacy');
+Route::get('/terms', fn () => view('legal.terms'))->name('terms');
+
 // Test pages for scanner validation (static pages with intentional accessibility issues)
 Route::get('/test/good', fn () => view('test-pages.good'))->name('test.good');
 Route::get('/test/mediocre', fn () => view('test-pages.mediocre'))->name('test.mediocre');

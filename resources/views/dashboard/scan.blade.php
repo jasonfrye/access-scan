@@ -89,12 +89,31 @@
                 <p class="text-gray-600 mb-6">
                     {{ $scan->isRunning() ? 'We\'re scanning your site now. This page will update automatically.' : 'Your scan is in the queue and will start shortly.' }}
                 </p>
-                <div class="inline-flex items-center gap-2 text-sm text-indigo-600 font-medium">
+                <div x-data="{
+                    index: 0,
+                    messages: [
+                        'Warming up the accessibility engines...',
+                        'Teaching robots to read alt text...',
+                        'Asking every button if it has a label...',
+                        'Interrogating your heading hierarchy...',
+                        'Counting contrast ratios on our fingers...',
+                        'Politely requesting your CSS cooperate...',
+                        'Checking if screen readers would swipe right...',
+                        'Bribing the DOM for insider information...',
+                        'Making sure links actually go somewhere...',
+                        'Judging your color choices (respectfully)...',
+                        'Consulting the WCAG sacred texts...',
+                        'Arguing with ARIA about proper roles...',
+                        'Verifying forms aren\'t playing hide and seek...',
+                        'Auditing tab order for cutting in line...',
+                    ],
+                    start() { setInterval(() => { this.index = (this.index + 1) % this.messages.length }, 3000) }
+                }" x-init="start()" class="inline-flex items-center gap-2 text-sm text-indigo-600 font-medium">
                     <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                     </svg>
-                    Checking for results...
+                    <span x-text="messages[index]" x-transition></span>
                 </div>
             </div>
 
@@ -229,12 +248,16 @@
                                         @foreach($pages as $page)
                                         md += `## {{ $page->path }} (Score: {{ number_format($page->score ?? 0, 0) }})\n\n`;
                                         @if($page->issues->count() > 0)
-                                        md += `| Type | Code | Message |\n`;
-                                        md += `|------|------|---------|\n`;
                                         @foreach($page->issues as $issue)
-                                        md += `| {{ $issue->type }} | \`{{ $issue->code }}\` | {{ str_replace(['|', '`', '\n', '\r'], ['\|', '', ' ', ''], $issue->message) }} |\n`;
+                                        md += `### {{ ucfirst($issue->type) }}: \`{{ $issue->code }}\`\n`;
+                                        md += `{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->message) }}\n\n`;
+                                        @if($issue->selector)
+                                        md += `**Selector:** \`{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->selector) }}\`\n\n`;
+                                        @endif
+                                        @if($issue->context)
+                                        md += `**HTML:**\n\`\`\`html\n{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->context) }}\n\`\`\`\n\n`;
+                                        @endif
                                         @endforeach
-                                        md += `\n`;
                                         @else
                                         md += `No issues found.\n\n`;
                                         @endif
@@ -260,8 +283,9 @@
                                     </template>
                                 </button>
                             </div>
-                            <form action="{{ route('dashboard.scan.retry', $scan) }}" method="POST">
+                            <form action="{{ route('dashboard.scan.store') }}" method="POST">
                                 @csrf
+                                <input type="hidden" name="url" value="{{ $scan->url }}">
                                 <button type="submit" class="w-full py-3 px-4 border border-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                                     Re-scan This Site

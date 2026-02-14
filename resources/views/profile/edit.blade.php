@@ -15,26 +15,40 @@
             <p class="text-gray-600 mt-1">Manage your account information and preferences</p>
         </div>
 
+        <div class="flex flex-wrap gap-2 mb-8">
+            <a href="#profile-information" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">Profile Information</a>
+            <a href="#password" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">Password</a>
+            <a href="#api-key" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">API Key</a>
+            <a href="#email-preferences" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">Email Preferences</a>
+            <a href="#delete-account" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-200 text-red-600 hover:bg-red-50 transition-colors">Delete Account</a>
+        </div>
+
         <div class="space-y-6">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+            <div id="profile-information" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 scroll-mt-6">
                 <div class="max-w-xl">
                     @include('profile.partials.update-profile-information-form')
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+            <div id="password" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 scroll-mt-6">
                 <div class="max-w-xl">
                     @include('profile.partials.update-password-form')
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+            <div id="api-key" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 scroll-mt-6">
+                <div class="max-w-xl">
+                    @include('profile.partials.manage-api-key-form')
+                </div>
+            </div>
+
+            <div id="email-preferences" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 scroll-mt-6">
                 <div class="max-w-xl">
                     @include('profile.partials.update-email-preferences-form')
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+            <div id="delete-account" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 scroll-mt-6">
                 <div class="max-w-xl">
                     @include('profile.partials.delete-user-form')
                 </div>

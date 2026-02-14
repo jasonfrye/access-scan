@@ -78,6 +78,11 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
+        if (! $user->isPaid()) {
+            return Redirect::route('profile.edit')
+                ->with('error', 'API access requires a paid plan.');
+        }
+
         $token = $user->createToken('API Access');
 
         return Redirect::route('profile.edit')

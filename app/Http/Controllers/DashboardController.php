@@ -20,10 +20,12 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        $scans = $user->scans()
+        $groupedScans = $user->scans()
             ->with('pages')
             ->orderBy('created_at', 'desc')
-            ->paginate(10, page: $request->get('page', 1));
+            ->get()
+            ->groupBy(fn ($scan) => $scan->domain)
+            ->sortByDesc(fn ($scans) => $scans->first()->created_at);
 
         $stats = [
             'total_scans' => $user->scans()->count(),
@@ -46,9 +48,12 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $allSchedules = $user->scheduledScans()->get();
+        $schedulesByDomain = $allSchedules->keyBy(fn ($s) => $s->domain);
+
         $trendData = $this->getTrendData($user);
 
-        return view('dashboard', compact('scans', 'stats', 'recentScans', 'scheduledScans', 'trendData'));
+        return view('dashboard', compact('groupedScans', 'stats', 'recentScans', 'scheduledScans', 'schedulesByDomain', 'trendData'));
     }
 
     /**

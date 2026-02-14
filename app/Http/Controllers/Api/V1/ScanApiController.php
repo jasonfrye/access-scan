@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Models\Scan;
 use App\Http\Controllers\Controller;
+use App\Models\Scan;
 use App\Services\ScannerService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class ScanApiController extends Controller
 {
@@ -18,9 +18,16 @@ class ScanApiController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
+        if (! $user->isPaid()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'API access requires a paid plan',
+                'upgrade_url' => route('billing.pricing'),
+            ], 403);
+        }
+
         $scans = $user->scans()
-            ->with('issues')
             ->latest('completed_at')
             ->paginate(20);
 
@@ -60,6 +67,15 @@ class ScanApiController extends Controller
         }
 
         $user = $request->user();
+
+        if ($user && ! $user->isPaid()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'API access requires a paid plan',
+                'upgrade_url' => route('billing.pricing'),
+            ], 403);
+        }
+
         $url = $request->input('url');
         $maxPages = $request->input('pages', 5);
 
@@ -145,7 +161,7 @@ class ScanApiController extends Controller
             ], 404);
         }
 
-        if (!$scan->isCompleted()) {
+        if (! $scan->isCompleted()) {
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -158,7 +174,7 @@ class ScanApiController extends Controller
         }
 
         // Return full results for completed scans
-        $scan->load('issues');
+        $scan->load('pages.issues');
 
         return response()->json([
             'success' => true,
@@ -174,14 +190,27 @@ class ScanApiController extends Controller
                 'notices_count' => $scan->notices_count,
                 'pages_scanned' => $scan->pages_scanned,
                 'completed_at' => $scan->completed_at?->toIso8601String(),
-                'issues' => $scan->issues->map(fn($issue) => [
-                    'id' => $issue->id,
-                    'type' => $issue->type,
-                    'wcag_reference' => $issue->wcag_reference,
-                    'message' => $issue->message,
-                    'code' => $issue->code,
-                    'impact' => $issue->impact,
-                    'recommendation' => $issue->recommendation,
+                'pages' => $scan->pages->map(fn ($page) => [
+                    'id' => $page->id,
+                    'url' => $page->url,
+                    'path' => $page->path,
+                    'score' => $page->score,
+                    'errors_count' => $page->errors_count,
+                    'warnings_count' => $page->warnings_count,
+                    'notices_count' => $page->notices_count,
+                    'issues' => $page->issues->map(fn ($issue) => [
+                        'id' => $issue->id,
+                        'type' => $issue->type,
+                        'code' => $issue->code,
+                        'message' => $issue->message,
+                        'context' => $issue->context,
+                        'selector' => $issue->selector,
+                        'wcag_reference' => $issue->wcag_reference,
+                        'wcag_level' => $issue->wcag_level,
+                        'impact' => $issue->impact,
+                        'recommendation' => $issue->recommendation,
+                        'help_url' => $issue->help_url,
+                    ]),
                 ]),
             ],
         ]);
@@ -226,12 +255,12 @@ class ScanApiController extends Controller
         }
 
         $scheme = parse_url($url, PHP_URL_SCHEME);
-        if (!in_array($scheme, ['http', 'https'])) {
+        if (! in_array($scheme, ['http', 'https'])) {
             return 'URL must use HTTP or HTTPS protocol';
         }
 
         $host = parse_url($url, PHP_URL_HOST);
-        if (!$host || !filter_var('http://' . $host, FILTER_VALIDATE_URL)) {
+        if (! $host || ! filter_var('http://'.$host, FILTER_VALIDATE_URL)) {
             return 'Invalid domain name';
         }
 

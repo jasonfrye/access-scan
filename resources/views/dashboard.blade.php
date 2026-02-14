@@ -97,81 +97,105 @@
                         </button>
                     </div>
 
-                    @if($scans->count() > 0)
+                    @if($groupedScans->count() > 0)
                         <div class="divide-y-2 divide-gray-100">
-                            @foreach($scans as $scan)
-                                <div class="p-6 hover:bg-blue-50/30 transition-all group">
-                                    <div class="flex items-center justify-between gap-6">
-                                        <div class="flex items-center gap-5">
-                                            <!-- Grade Badge with Report Card Style -->
-                                            <div class="relative flex-shrink-0">
-                                                <div class="w-16 h-20 rounded-lg flex flex-col items-center justify-center font-bold shadow-md {{ $scan->grade === 'A' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : ($scan->grade === 'B' ? 'bg-gradient-to-br from-green-400 to-green-500 text-white' : ($scan->grade === 'C' ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white' : ($scan->grade === 'D' ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'))) }}">
-                                                    <div class="text-3xl">{{ $scan->grade ?? '?' }}</div>
-                                                    <div class="text-xs font-normal opacity-90">GRADE</div>
-                                                </div>
-                                            </div>
+                            @foreach($groupedScans as $domain => $domainScans)
+                                @php $latestScan = $domainScans->first(); @endphp
 
-                                            <div class="flex-1 min-w-0">
-                                                <a href="{{ route('dashboard.scan', $scan) }}" class="font-semibold text-gray-900 hover:text-blue-600 transition-colors text-lg group-hover:underline">
-                                                    {{ parse_url($scan->url, PHP_URL_HOST) }}
-                                                </a>
-                                                <p class="text-sm text-gray-600 font-mono truncate">{{ parse_url($scan->url, PHP_URL_PATH) ?: '/' }}</p>
-                                                <div class="flex items-center gap-3 mt-2">
-                                                    <span class="text-xs text-gray-400 flex items-center gap-1">
-                                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                                                        </svg>
-                                                        {{ $scan->completed_at?->diffForHumans() ?? $scan->created_at->diffForHumans() }}
-                                                    </span>
-                                                    <span class="text-xs text-gray-400">•</span>
-                                                    <span class="text-xs text-gray-400">{{ $scan->pages_scanned }} pages</span>
+                                @if($domainScans->count() === 1)
+                                    {{-- Single scan — link directly to report --}}
+                                    <div class="flex items-center p-6 hover:bg-blue-50/30 transition-all group gap-3">
+                                        <a href="{{ route('dashboard.scan', $latestScan) }}" class="flex items-center justify-between gap-6 flex-1 min-w-0">
+                                            <div class="flex items-center gap-5">
+                                                <div class="relative flex-shrink-0">
+                                                    <div class="w-16 h-20 rounded-lg flex flex-col items-center justify-center font-bold shadow-md {{ $latestScan->grade === 'A' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : ($latestScan->grade === 'B' ? 'bg-gradient-to-br from-green-400 to-green-500 text-white' : ($latestScan->grade === 'C' ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white' : ($latestScan->grade === 'D' ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'))) }}">
+                                                        <div class="text-3xl">{{ $latestScan->grade ?? '?' }}</div>
+                                                        <div class="text-xs font-normal opacity-90">GRADE</div>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <span class="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-lg group-hover:underline">{{ $domain }}</span>
+                                                    <div class="flex items-center gap-3 mt-2">
+                                                        <span class="text-xs text-gray-400 flex items-center gap-1">
+                                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                                                            {{ $latestScan->completed_at?->diffForHumans() ?? $latestScan->created_at->diffForHumans() }}
+                                                        </span>
+                                                        <span class="text-xs text-gray-400">•</span>
+                                                        <span class="text-xs text-gray-400">{{ $latestScan->pages_scanned }} pages</span>
+                                                    </div>
                                                 </div>
                                             </div>
+                                            <div class="text-right flex-shrink-0">
+                                                <div class="text-3xl font-bold text-gray-900">{{ number_format($latestScan->score, 0) }}</div>
+                                                <div class="text-sm text-gray-500 font-medium">/100</div>
+                                                <div class="text-xs text-gray-400 mt-1">{{ $latestScan->issues_found }} {{ Str::plural('issue', $latestScan->issues_found) }}</div>
+                                            </div>
+                                        </a>
+                                        @include('dashboard._schedule-icon', ['domain' => $domain, 'latestScan' => $latestScan])
+                                    </div>
+                                @else
+                                    {{-- Multiple scans — accordion --}}
+                                    <div x-data="{ open: false }" class="transition-all">
+                                        <div class="flex items-center p-6 hover:bg-blue-50/30 transition-all gap-3">
+                                            <button @click="open = !open" class="flex items-center justify-between gap-6 flex-1 min-w-0 text-left">
+                                                <div class="flex items-center gap-5">
+                                                    <div class="relative flex-shrink-0">
+                                                        <div class="w-16 h-20 rounded-lg flex flex-col items-center justify-center font-bold shadow-md {{ $latestScan->grade === 'A' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : ($latestScan->grade === 'B' ? 'bg-gradient-to-br from-green-400 to-green-500 text-white' : ($latestScan->grade === 'C' ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white' : ($latestScan->grade === 'D' ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'))) }}">
+                                                            <div class="text-3xl">{{ $latestScan->grade ?? '?' }}</div>
+                                                            <div class="text-xs font-normal opacity-90">GRADE</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="flex items-center gap-3">
+                                                            <span class="font-semibold text-gray-900 text-lg">{{ $domain }}</span>
+                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{{ $domainScans->count() }} scans</span>
+                                                        </div>
+                                                        <div class="flex items-center gap-3 mt-2">
+                                                            <span class="text-xs text-gray-400 flex items-center gap-1">
+                                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                                                                Latest: {{ $latestScan->completed_at?->diffForHumans() ?? $latestScan->created_at->diffForHumans() }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center gap-4">
+                                                    <div class="text-right flex-shrink-0">
+                                                        <div class="text-3xl font-bold text-gray-900">{{ number_format($latestScan->score, 0) }}</div>
+                                                        <div class="text-sm text-gray-500 font-medium">/100</div>
+                                                    </div>
+                                                    <svg class="w-5 h-5 text-gray-400 transition-transform" :class="open && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </div>
+                                            </button>
+                                            @include('dashboard._schedule-icon', ['domain' => $domain, 'latestScan' => $latestScan])
                                         </div>
 
-                                        <div class="text-right flex-shrink-0">
-                                            <div class="text-3xl font-bold text-gray-900">{{ number_format($scan->score, 0) }}</div>
-                                            <div class="text-sm text-gray-500 font-medium">/100</div>
-                                            <div class="text-xs text-gray-400 mt-1">
-                                                {{ $scan->issues_found }} {{ Str::plural('issue', $scan->issues_found) }}
+                                        <div x-show="open" x-collapse>
+                                            <div class="px-6 pb-4 space-y-2 ml-20">
+                                                @foreach($domainScans as $scan)
+                                                    <a href="{{ route('dashboard.scan', $scan) }}" class="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors group/scan">
+                                                        <div class="flex items-center gap-3">
+                                                            <span class="w-8 h-8 rounded-md flex items-center justify-center text-sm font-bold {{ $scan->grade === 'A' ? 'bg-green-100 text-green-700' : ($scan->grade === 'B' ? 'bg-green-50 text-green-600' : ($scan->grade === 'C' ? 'bg-yellow-100 text-yellow-700' : ($scan->grade === 'D' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'))) }}">{{ $scan->grade ?? '?' }}</span>
+                                                            <div>
+                                                                <div class="text-sm font-medium text-gray-700 group-hover/scan:text-blue-600"
+                                                                     x-data="{ formatted: '' }"
+                                                                     x-init="formatted = new Date('{{ ($scan->completed_at ?? $scan->created_at)->toIso8601String() }}').toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })"
+                                                                     x-text="formatted">{{ ($scan->completed_at ?? $scan->created_at)->format('M d, Y g:ia') }}</div>
+                                                                <div class="text-xs text-gray-400">{{ $scan->pages_scanned }} pages • {{ $scan->issues_found }} {{ Str::plural('issue', $scan->issues_found) }}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-right">
+                                                            <span class="text-lg font-bold text-gray-900">{{ number_format($scan->score, 0) }}</span>
+                                                            <span class="text-xs text-gray-400">/100</span>
+                                                        </div>
+                                                    </a>
+                                                @endforeach
                                             </div>
                                         </div>
                                     </div>
-
-                                    <!-- Issue Summary Badges -->
-                                    <div class="mt-4 flex items-center gap-2 flex-wrap ml-20">
-                                        @if($scan->errors_count > 0)
-                                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
-                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                                                </svg>
-                                                {{ $scan->errors_count }} {{ Str::plural('error', $scan->errors_count) }}
-                                            </span>
-                                        @endif
-                                        @if($scan->warnings_count > 0)
-                                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">
-                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                                </svg>
-                                                {{ $scan->warnings_count }} {{ Str::plural('warning', $scan->warnings_count) }}
-                                            </span>
-                                        @endif
-                                        @if($scan->notices_count > 0)
-                                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                                                </svg>
-                                                {{ $scan->notices_count }} {{ Str::plural('notice', $scan->notices_count) }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
+                                @endif
                             @endforeach
-                        </div>
-
-                        <!-- Pagination -->
-                        <div class="p-6 border-t border-gray-100">
-                            {{ $scans->links() }}
                         </div>
                     @else
                         <div class="p-16 text-center">
@@ -339,6 +363,26 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- API Access Card --}}
+                @if(Auth::user()->isPaid())
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-indigo-50 rounded-lg">
+                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 text-sm">API Access</h3>
+                            <p class="text-xs text-gray-500 mt-1">Run scans programmatically and integrate accessibility checks into your workflow.</p>
+                            <div class="flex gap-2 mt-3">
+                                <a href="{{ route('profile.edit') }}#api-key" class="text-xs font-medium text-indigo-600 hover:text-indigo-800">Get API Key</a>
+                                <span class="text-gray-300">|</span>
+                                <a href="{{ route('api.docs') }}" class="text-xs font-medium text-gray-600 hover:text-gray-800">View Docs</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -451,8 +495,8 @@
 </div>
 
 <!-- Add Scheduled Scan Modal -->
-<div x-data="{ open: false }" 
-     @open-modal.window="open = ($event.detail === 'add-scheduled'); if(open) $nextTick(() => $refs.url.focus())"
+<div x-data="{ open: false }"
+     @open-modal.window="if ($event.detail === 'add-scheduled' || ($event.detail && $event.detail.modal === 'add-scheduled')) { open = true; $nextTick(() => { if ($event.detail && $event.detail.url) { $refs.url.value = $event.detail.url; } $refs.url.focus(); }); }"
      x-show="open"
      class="fixed inset-0 z-50 overflow-y-auto"
      style="display: none;"

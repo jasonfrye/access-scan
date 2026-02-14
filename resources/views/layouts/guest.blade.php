@@ -128,7 +128,15 @@
                 <div class="flex items-center gap-4">
                     @auth
                         <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-gray-900 font-medium">Dashboard</a>
-                        <a href="{{ route('billing.pricing') }}" class="text-gray-600 hover:text-gray-900 font-medium">Pricing</a>
+                        @unless(auth()->user()->isPaid())
+                            <a href="{{ route('billing.pricing') }}" class="text-gray-600 hover:text-gray-900 font-medium">Pricing</a>
+                        @endunless
+                        <a href="{{ route('billing.index') }}" class="text-gray-600 hover:text-gray-900 font-medium">Billing</a>
+                        <a href="{{ route('profile.edit') }}" class="text-gray-600 hover:text-gray-900 font-medium">Profile</a>
+                        <form method="POST" action="{{ route('logout') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="text-gray-600 hover:text-gray-900 font-medium">Log Out</button>
+                        </form>
                     @else
                         <a href="{{ route('billing.pricing') }}" class="text-gray-600 hover:text-gray-900 font-medium">Pricing</a>
                         <a href="{{ route('login') }}" class="text-gray-600 hover:text-gray-900 font-medium">Sign In</a>
@@ -177,6 +185,8 @@
                 <div>
                     <h3 class="font-semibold text-gray-900 mb-3">Company</h3>
                     <ul class="space-y-2">
+                        <li><a href="{{ route('privacy') }}" class="text-gray-600 hover:text-gray-900">Privacy Policy</a></li>
+                        <li><a href="{{ route('terms') }}" class="text-gray-600 hover:text-gray-900">Terms of Use</a></li>
                         <li><a href="mailto:support@accessreportcard.com" class="text-gray-600 hover:text-gray-900">Support</a></li>
                     </ul>
                 </div>

@@ -50,10 +50,19 @@
                         md += `**URL:** {{ $scanPage->url }}\n`;
                         md += `**Score:** {{ number_format($scanPage->score ?? 0, 0) }}/100\n`;
                         md += `**Errors:** {{ $scanPage->errors_count }} | **Warnings:** {{ $scanPage->warnings_count }} | **Notices:** {{ $scanPage->notices_count }}\n\n`;
-                        md += `| Type | Code | Message |\n`;
-                        md += `|------|------|---------|\n`;
                         @foreach($scanPage->issues as $issue)
-                        md += `| {{ $issue->type }} | \`{{ $issue->code }}\` | {{ str_replace(['|', '`', '\n', '\r'], ['\|', '', ' ', ''], $issue->message) }} |\n`;
+                        md += `### {{ ucfirst($issue->type) }}: \`{{ $issue->code }}\`\n`;
+                        md += `{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->message) }}\n\n`;
+                        @if($issue->selector)
+                        md += `**Selector:** \`{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->selector) }}\`\n\n`;
+                        @endif
+                        @if($issue->context)
+                        md += `**HTML:**\n\`\`\`html\n{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->context) }}\n\`\`\`\n\n`;
+                        @endif
+                        @if($issue->recommendation)
+                        md += `**How to fix:** {{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->recommendation) }}\n\n`;
+                        @endif
+                        md += `---\n\n`;
                         @endforeach
                         navigator.clipboard.writeText(md);
                         copied = true;
