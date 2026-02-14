@@ -25,6 +25,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'google_id',
         'stripe_id',
         'plan',
         'scan_count',
