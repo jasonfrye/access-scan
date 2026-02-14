@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@section('title', 'Profile Settings - AccessScan')
+@section('title', 'Profile Settings - Access Report Card')
 
 @section('content')
 <div class="min-h-screen bg-gray-50 py-8">
@@ -25,6 +25,12 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
                 <div class="max-w-xl">
                     @include('profile.partials.update-password-form')
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+                <div class="max-w-xl">
+                    @include('profile.partials.update-email-preferences-form')
                 </div>
             </div>
 

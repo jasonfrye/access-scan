@@ -1,5 +1,5 @@
 @component('mail::message')
-# Your AccessScan Trial Has Expired 👋
+# Your Access Report Card Trial Has Expired 👋
 
 Hi {{ $user->name }},
 
@@ -16,7 +16,7 @@ You had access to all Pro features:
 
 ## Come back anytime!
 
-You can still use AccessScan for free — you'll just have:
+You can still use Access Report Card for free — you'll just have:
 - 5 scans per month
 - Up to 5 pages per scan
 - Basic reports
@@ -33,6 +33,6 @@ View Plans & Pricing
 If you have any questions, just hit reply — we're here to help!
 
 @slot('footer')
-&copy; {{ date('Y') }} AccessScan. [View plans]({{ route('billing.pricing') }}) | [Contact support](mailto:support@accessscan.app)
+&copy; {{ date('Y') }} Access Report Card. [View plans]({{ route('billing.pricing') }}) | [Unsubscribe]({{ URL::signedRoute('email.unsubscribe', $user) }})
 @endslot
 @endcomponent

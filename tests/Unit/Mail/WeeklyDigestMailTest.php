@@ -77,6 +77,7 @@ class WeeklyDigestMailTest extends TestCase
     public function renders_correctly_without_stats()
     {
         $user = User::factory()->make([
+            'id' => 1,
             'name' => 'Empty User',
             'email' => 'empty@example.com',
         ]);

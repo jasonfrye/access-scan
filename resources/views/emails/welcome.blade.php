@@ -1,5 +1,5 @@
 @component('mail::message')
-# Welcome to AccessScan! 🎉
+# Welcome to Access Report Card! 🎉
 
 Hi {{ $name }},
 
@@ -46,7 +46,7 @@ P.S. Want unlimited scans and detailed reports? Check out our paid plans anytime
 @endcomponent
 
 @slot('footer')
-&copy; {{ date('Y') }} AccessScan. All rights reserved.
-[Unsubscribe]({{ url('/unsubscribe/'.$user->id) }})
+&copy; {{ date('Y') }} Access Report Card. All rights reserved.
+[Unsubscribe]({{ URL::signedRoute('email.unsubscribe', $user) }})
 @endslot
 @endcomponent

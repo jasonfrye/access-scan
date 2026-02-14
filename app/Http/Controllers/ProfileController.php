@@ -59,6 +59,19 @@ class ProfileController extends Controller
     }
 
     /**
+     * Update the user's email preferences.
+     */
+    public function updateEmailPreferences(Request $request): RedirectResponse
+    {
+        $request->user()->update([
+            'marketing_emails_enabled' => $request->boolean('marketing_emails_enabled'),
+            'system_emails_enabled' => $request->boolean('system_emails_enabled'),
+        ]);
+
+        return Redirect::route('profile.edit')->with('status', 'email-preferences-updated');
+    }
+
+    /**
      * Create a new API token for the user.
      */
     public function createApiKey(Request $request): RedirectResponse

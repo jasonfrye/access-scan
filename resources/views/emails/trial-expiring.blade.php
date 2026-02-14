@@ -3,7 +3,7 @@
 
 Hi {{ $user->name }},
 
-Your AccessScan trial is winding down — you have **{{ $daysLeft }} {{ Str::plural('day', $daysLeft) }}** left before your free trial expires.
+Your Access Report Card trial is winding down — you have **{{ $daysLeft }} {{ Str::plural('day', $daysLeft) }}** left before your free trial expires.
 
 @if($daysLeft > 1)
 ## What you get with Pro ($29/month)
@@ -54,9 +54,9 @@ No problem! Here are a few things our Pro users love:
 @endcomponent
 @endif
 
-Thanks for trying AccessScan!
+Thanks for trying Access Report Card!
 
 @slot('footer')
-&copy; {{ date('Y') }} AccessScan. [Upgrade now]({{ route('billing.pricing') }}) | [Manage notifications]({{ url('/settings') }})
+&copy; {{ date('Y') }} Access Report Card. [Upgrade now]({{ route('billing.pricing') }}) | [Unsubscribe]({{ URL::signedRoute('email.unsubscribe', $user) }})
 @endslot
 @endcomponent

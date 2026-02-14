@@ -35,9 +35,9 @@ View What Changed
 
 Don't worry — we'll help you get back on track!
 
-Thanks for using AccessScan!
+Thanks for using Access Report Card!
 
 @slot('footer')
-&copy; {{ date('Y') }} AccessScan. [Manage alerts]({{ url('/settings/notifications') }})
+&copy; {{ date('Y') }} Access Report Card. [Unsubscribe]({{ URL::signedRoute('email.unsubscribe', $currentScan->user) }})
 @endslot
 @endcomponent

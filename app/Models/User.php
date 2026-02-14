@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Cashier\Billable;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use Billable, HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -29,6 +30,8 @@ class User extends Authenticatable
         'scan_count',
         'scan_limit',
         'trial_ends_at',
+        'marketing_emails_enabled',
+        'system_emails_enabled',
     ];
 
     /**
@@ -54,7 +57,21 @@ class User extends Authenticatable
             'scan_count' => 'integer',
             'scan_limit' => 'integer',
             'trial_ends_at' => 'datetime',
+            'marketing_emails_enabled' => 'boolean',
+            'system_emails_enabled' => 'boolean',
         ];
+    }
+
+    /**
+     * Check if the user wants to receive emails of the given category.
+     */
+    public function wantsEmail(string $category): bool
+    {
+        return match ($category) {
+            'marketing' => $this->marketing_emails_enabled,
+            'system' => $this->system_emails_enabled,
+            default => true,
+        };
     }
 
     /**

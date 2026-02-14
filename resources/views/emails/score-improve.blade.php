@@ -45,6 +45,6 @@ Consistent accessibility improvements help:
 Thanks for making the web more accessible!
 
 @slot('footer')
-&copy; {{ date('Y') }} AccessScan. [View dashboard]({{ route('dashboard') }}) | [Unsubscribe]({{ url('/settings') }})
+&copy; {{ date('Y') }} Access Report Card. [View dashboard]({{ route('dashboard') }}) | [Unsubscribe]({{ URL::signedRoute('email.unsubscribe', $user) }})
 @endslot
 @endcomponent

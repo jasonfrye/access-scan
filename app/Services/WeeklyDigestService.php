@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Mail\WeeklyDigestMail;
 use App\Models\Scan;
 use App\Models\User;
-use App\Mail\WeeklyDigestMail;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class WeeklyDigestService
 {
@@ -79,6 +79,7 @@ class WeeklyDigestService
     {
         $users = User::whereNotNull('email_verified_at')
             ->where('weekly_digest', true)
+            ->where('marketing_emails_enabled', true)
             ->get();
 
         $sent = 0;

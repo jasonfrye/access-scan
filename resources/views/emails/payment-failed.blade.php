@@ -30,7 +30,7 @@ Update Payment Method
 If you have any questions or need help with payment, just reply to this email — we're here to help.
 
 @slot('footer')
-&copy; {{ date('Y') }} AccessScan. All rights reserved.
-[Update Payment Method]({{ $updatePaymentUrl }})
+&copy; {{ date('Y') }} Access Report Card. All rights reserved.
+[Update Payment Method]({{ $updatePaymentUrl }}) | [Unsubscribe]({{ URL::signedRoute('email.unsubscribe', $user) }})
 @endslot
 @endcomponent

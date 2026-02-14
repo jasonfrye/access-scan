@@ -104,9 +104,9 @@ View Full Report & Fixes
 
 Making your site accessible helps **everyone** — and it's great for SEO too!
 
-Thanks for using AccessScan!
+Thanks for using Access Report Card!
 
 @slot('footer')
-&copy; {{ date('Y') }} AccessScan. [View dashboard]({{ route('dashboard') }}) | [Unsubscribe]({{ url('/settings') }})
+&copy; {{ date('Y') }} Access Report Card. [View dashboard]({{ route('dashboard') }}) | [Unsubscribe]({{ URL::signedRoute('email.unsubscribe', $user) }})
 @endslot
 @endcomponent

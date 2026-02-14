@@ -61,6 +61,6 @@ Not finding value in Pro? [Downgrade to Free]({{ route('billing.pricing') }}) â€
 Thanks for being a Pro member!
 
 @slot('footer')
-&copy; {{ date('Y') }} AccessScan. [View dashboard]({{ route('dashboard') }}) | [Manage settings]({{ url('/settings') }})
+&copy; {{ date('Y') }} Access Report Card. [View dashboard]({{ route('dashboard') }}) | [Unsubscribe]({{ URL::signedRoute('email.unsubscribe', $user) }})
 @endslot
 @endcomponent

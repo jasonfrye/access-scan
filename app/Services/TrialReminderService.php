@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Mail\TrialExpiringMail;
-use Illuminate\Support\Facades\Mail;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class TrialReminderService
 {
@@ -36,6 +36,7 @@ class TrialReminderService
         $users = User::where('trial_ends_at', '=', now()->addDays($days))
             ->where('plan', 'free')
             ->whereNotNull('trial_ends_at')
+            ->where('marketing_emails_enabled', true)
             ->get();
 
         foreach ($users as $user) {
@@ -68,6 +69,7 @@ class TrialReminderService
             ->where('trial_ends_at', '>=', now()->subDay())
             ->where('plan', 'free')
             ->whereNotNull('trial_reminder_sent_at')
+            ->where('marketing_emails_enabled', true)
             ->get();
 
         foreach ($users as $user) {

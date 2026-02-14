@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Mail\ScanCompleteMail;
+use App\Models\EmailLead;
 use App\Models\Scan;
 use App\Models\User;
-use App\Models\EmailLead;
-use App\Mail\ScanCompleteMail;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class NotificationService
 {
@@ -18,10 +18,15 @@ class NotificationService
     {
         $user = $scan->user;
 
-        if (!$user || !$user->email) {
+        if (! $user || ! $user->email) {
             Log::warning('Cannot send scan notification: no user or email', [
                 'scan_id' => $scan->id,
             ]);
+
+            return;
+        }
+
+        if (! $user->wantsEmail('system')) {
             return;
         }
 
@@ -46,7 +51,7 @@ class NotificationService
      */
     public function sendRegressionAlert(User $user, Scan $currentScan, Scan $previousScan, int $scoreDrop): void
     {
-        if (!$user->email) {
+        if (! $user->email || ! $user->wantsEmail('system')) {
             return;
         }
 
@@ -71,7 +76,7 @@ class NotificationService
      */
     public function sendScoreImproveNotification(User $user, Scan $currentScan, Scan $previousScan, int $improvement): void
     {
-        if (!$user->email) {
+        if (! $user->email || ! $user->wantsEmail('marketing')) {
             return;
         }
 
@@ -98,7 +103,7 @@ class NotificationService
     {
         $user = $scan->user;
 
-        if (!$user || !$user->email) {
+        if (! $user || ! $user->email || ! $user->wantsEmail('marketing')) {
             return;
         }
 
@@ -108,7 +113,7 @@ class NotificationService
                 ->where('type', 'error')
                 ->limit(3)
                 ->get()
-                ->map(fn($issue) => [
+                ->map(fn ($issue) => [
                     'type' => $issue->wcag_reference ?? 'Issue',
                     'message' => $issue->message,
                     'code' => $issue->code,
@@ -137,7 +142,7 @@ class NotificationService
      */
     public function sendReEngagementEmail(User $user, int $daysInactive): void
     {
-        if (!$user->email) {
+        if (! $user->email || ! $user->wantsEmail('marketing')) {
             return;
         }
 
@@ -161,7 +166,7 @@ class NotificationService
      */
     public function sendPlanBenefitEmail(User $user, array $unusedFeatures = []): void
     {
-        if (!$user->email) {
+        if (! $user->email || ! $user->wantsEmail('marketing')) {
             return;
         }
 
@@ -195,7 +200,7 @@ class NotificationService
      */
     public function sendWelcomeEmail(User $user): void
     {
-        if (!$user->email) {
+        if (! $user->email) {
             return;
         }
 
@@ -218,7 +223,7 @@ class NotificationService
      */
     public function sendTrialExpiringReminder(User $user, int $daysLeft): void
     {
-        if (!$user->email || !$user->trial_ends_at) {
+        if (! $user->email || ! $user->trial_ends_at || ! $user->wantsEmail('marketing')) {
             return;
         }
 
@@ -242,7 +247,7 @@ class NotificationService
      */
     public function sendLeadEmail(EmailLead $lead, string $template, int $step): void
     {
-        if (!$lead->email) {
+        if (! $lead->email) {
             return;
         }
 
@@ -256,11 +261,12 @@ class NotificationService
 
         $mailClass = $templates[$template] ?? null;
 
-        if (!$mailClass) {
+        if (! $mailClass) {
             Log::warning('Unknown lead email template', [
                 'template' => $template,
                 'lead_id' => $lead->id,
             ]);
+
             return;
         }
 

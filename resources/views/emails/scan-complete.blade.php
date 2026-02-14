@@ -37,14 +37,14 @@ View Full Report
 - Check color contrast ratios
 @endcomponent
 
-Thanks for using AccessScan!
+Thanks for using Access Report Card!
 
 @component('mail::subcopy')
 Questions? Just reply to this email — we're here to help.
 @endcomponent
 
 @slot('footer')
-&copy; {{ date('Y') }} AccessScan. All rights reserved.
-[Unsubscribe]({{ url('/unsubscribe/'.$scan->user_id) }})
+&copy; {{ date('Y') }} Access Report Card. All rights reserved.
+[Unsubscribe]({{ URL::signedRoute('email.unsubscribe', $scan->user) }})
 @endslot
 @endcomponent

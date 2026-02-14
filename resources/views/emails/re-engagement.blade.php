@@ -1,7 +1,7 @@
 @component('mail::message')
 # We Miss You, {{ $user->name }}! 👋
 
-It's been **{{ $daysInactive }} {{ Str::plural('day', $daysInactive) }}** since you last used AccessScan.
+It's been **{{ $daysInactive }} {{ Str::plural('day', $daysInactive) }}** since you last used Access Report Card.
 
 @if($daysInactive >= 60)
 ## It's Not Too Late to Finish What You Started
@@ -51,11 +51,11 @@ Just ran a new scan? Here are the top 3 issues to fix first:
 2. **Color Contrast** — Make text readable
 3. **Form Labels** — Help users navigate forms
 
-Not ready to scan? No problem — just [update your notification preferences]({{ url('/settings') }}).
+Not ready to scan? No problem — just [update your notification preferences]({{ URL::signedRoute('email.unsubscribe', $user) }}).
 
-Thanks for being part of the AccessScan community!
+Thanks for being part of the Access Report Card community!
 
 @slot('footer')
-&copy; {{ date('Y') }} AccessScan. [View dashboard]({{ route('dashboard') }}) | [Unsubscribe]({{ url('/settings') }})
+&copy; {{ date('Y') }} Access Report Card. [View dashboard]({{ route('dashboard') }}) | [Unsubscribe]({{ URL::signedRoute('email.unsubscribe', $user) }})
 @endslot
 @endcomponent

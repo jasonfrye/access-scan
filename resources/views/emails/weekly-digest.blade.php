@@ -29,7 +29,7 @@ Your average score dropped by **{{ $stats['declined'] }} points** this week. Con
 @else
 ## No Scans This Week
 
-You haven't run any scans in the past 7 days. Here's a quick reminder of what AccessScan can do for you:
+You haven't run any scans in the past 7 days. Here's a quick reminder of what Access Report Card can do for you:
 
 @component('mail::panel')
 **What you'll find:**
@@ -49,9 +49,9 @@ Did you know? **Alt text** should be descriptive but concise — aim for 125 cha
 Run a Scan Now
 @endcomponent
 
-Thanks for using AccessScan!
+Thanks for using Access Report Card!
 
 @slot('footer')
-&copy; {{ date('Y') }} AccessScan. [View dashboard]({{ route('dashboard') }}) | [Manage settings]({{ url('/settings') }})
+&copy; {{ date('Y') }} Access Report Card. [View dashboard]({{ route('dashboard') }}) | [Unsubscribe]({{ URL::signedRoute('email.unsubscribe', $user) }})
 @endslot
 @endcomponent
