@@ -14,7 +14,10 @@
             <div class="flex items-center justify-between mt-2">
                 <div>
                     <h1 class="text-2xl font-bold">{{ $scanPage->path === '/' ? 'Homepage' : $scanPage->path }}</h1>
-                    <p class="text-white/80 text-sm mt-1">{{ $scanPage->url }}</p>
+                    <a href="{{ $scanPage->url }}" target="_blank" rel="noopener noreferrer" class="text-white/80 hover:text-white text-sm mt-1 inline-flex items-center gap-1">
+                        {{ $scanPage->url }}
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
                 </div>
                 <div class="text-right">
                     <div class="text-5xl font-bold">{{ number_format($scanPage->score ?? 0, 0) }}</div>
@@ -42,7 +45,7 @@
         </div>
 
         <!-- Copy as Markdown -->
-        @if($scanPage->issues->count() > 0)
+        @if($scanPage->issues->count() > 0 && Auth::user()->isPaid())
             <div class="mb-8 flex justify-end" x-data="{ copied: false }">
                 <button
                     @click="
@@ -88,9 +91,47 @@
         @endif
 
         <!-- Categorized Issues -->
+        @php $isFreeUser = !Auth::user()->isPaid(); @endphp
         <div class="space-y-4">
-            @forelse($categories as $category)
-                <div class="bg-white rounded-2xl shadow-sm overflow-hidden" x-data="{ open: {{ $category['errors'] > 0 ? 'true' : 'false' }} }">
+            @forelse($categories as $categoryIndex => $category)
+                @if($isFreeUser && $categoryIndex === 2)
+                    {{-- Fade-out paywall for remaining categories --}}
+                    <div class="relative">
+                        <div class="overflow-hidden max-h-48">
+                            @for($i = $categoryIndex; $i < count($categories); $i++)
+                                <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-4">
+                                    <div class="w-full flex items-center justify-between p-5 text-left">
+                                        <div class="flex items-center gap-3">
+                                            <h3 class="text-lg font-semibold text-gray-900">{{ $categories[$i]['name'] }}</h3>
+                                            <span class="text-xs text-gray-400">WCAG 2.1 AA</span>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span class="px-3 py-1 text-xs font-medium rounded-full {{ $categories[$i]['score_class'] }}">
+                                                {{ $categories[$i]['score_label'] }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endfor
+                        </div>
+                        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/80 to-white flex items-end justify-center pb-0">
+                            <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 text-center max-w-md mb-4">
+                                <div class="w-12 h-12 mx-auto bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                </div>
+                                <h3 class="text-lg font-bold text-gray-900 mb-2">Upgrade to See All Issues</h3>
+                                <p class="text-sm text-gray-600 mb-4">Get full access to all issue categories, code context, fix recommendations, and export options.</p>
+                                <a href="{{ route('billing.pricing') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors">
+                                    View Plans
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    @break
+                @endif
+
+                <div class="bg-white rounded-2xl shadow-sm overflow-hidden" x-data="{ open: {{ !$isFreeUser && $category['errors'] > 0 ? 'true' : 'false' }} }">
                     <button @click="open = !open" class="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors text-left">
                         <div class="flex items-center gap-3">
                             <h3 class="text-lg font-semibold text-gray-900">{{ $category['name'] }}</h3>
@@ -128,32 +169,38 @@
                                             </div>
                                             <p class="text-sm text-gray-900">{{ $issue->message }}</p>
 
-                                            <!-- Expanded details -->
-                                            <div x-show="expanded" x-collapse class="mt-3 space-y-3">
-                                                @if($issue->context)
-                                                    <div>
-                                                        <div class="text-xs font-medium text-gray-500 mb-1">AFFECTED ELEMENT</div>
-                                                        <code class="block bg-gray-900 text-gray-100 p-3 rounded-lg text-xs overflow-x-auto">{{ $issue->context }}</code>
-                                                    </div>
-                                                @endif
-                                                @if($issue->recommendation)
-                                                    <div>
-                                                        <div class="text-xs font-medium text-gray-500 mb-1">HOW TO FIX</div>
-                                                        <p class="text-sm text-gray-700">{{ $issue->recommendation }}</p>
-                                                    </div>
-                                                @endif
-                                                @if($issue->help_url)
-                                                    <a href="{{ $issue->help_url }}" target="_blank" class="text-sm text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1">
-                                                        Learn more
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                                    </a>
-                                                @endif
-                                            </div>
+                                            @if($isFreeUser)
+                                                <p class="text-xs text-gray-400 mt-2 italic">Upgrade to see code context and fix recommendations</p>
+                                            @else
+                                                <!-- Expanded details -->
+                                                <div x-show="expanded" x-collapse class="mt-3 space-y-3">
+                                                    @if($issue->context)
+                                                        <div>
+                                                            <div class="text-xs font-medium text-gray-500 mb-1">AFFECTED ELEMENT</div>
+                                                            <code class="block bg-gray-900 text-gray-100 p-3 rounded-lg text-xs overflow-x-auto">{{ $issue->context }}</code>
+                                                        </div>
+                                                    @endif
+                                                    @if($issue->recommendation)
+                                                        <div>
+                                                            <div class="text-xs font-medium text-gray-500 mb-1">HOW TO FIX</div>
+                                                            <p class="text-sm text-gray-700">{{ $issue->recommendation }}</p>
+                                                        </div>
+                                                    @endif
+                                                    @if($issue->help_url)
+                                                        <a href="{{ $issue->help_url }}" target="_blank" class="text-sm text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1">
+                                                            Learn more
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            @endif
                                         </div>
 
-                                        <button @click="expanded = !expanded" class="flex-shrink-0 text-gray-400 hover:text-gray-600">
-                                            <svg class="w-5 h-5 transition-transform" :class="expanded && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                                        </button>
+                                        @if(!$isFreeUser)
+                                            <button @click="expanded = !expanded" class="flex-shrink-0 text-gray-400 hover:text-gray-600">
+                                                <svg class="w-5 h-5 transition-transform" :class="expanded && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach

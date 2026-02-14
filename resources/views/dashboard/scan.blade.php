@@ -14,7 +14,10 @@
                         Back to Dashboard
                     </a>
                     <h1 class="text-2xl font-bold">{{ $scan->domain }}</h1>
-                    <p class="text-white/80 text-sm mt-1">{{ $scan->url }}</p>
+                    <a href="{{ $scan->url }}" target="_blank" rel="noopener noreferrer" class="text-white/80 hover:text-white text-sm mt-1 inline-flex items-center gap-1">
+                        {{ $scan->url }}
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
                 </div>
                 <div class="text-right">
                     <div class="text-sm text-white/70">{{ $scan->completed_at ? 'Scanned ' . $scan->completed_at->diffForHumans() : ucfirst($scan->status) }}</div>
@@ -51,29 +54,88 @@
 
         {{-- Failed State --}}
         @if($scan->isFailed())
-            <div class="bg-white rounded-2xl shadow-sm p-12 text-center mb-8">
-                <div class="w-20 h-20 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-6">
-                    <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                </div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">Scan Failed</h2>
-                <p class="text-gray-600 mb-2">We weren't able to complete the scan for <strong>{{ $scan->domain }}</strong>.</p>
-                @if($scan->error_message)
-                    <p class="text-sm text-red-600 bg-red-50 rounded-lg inline-block px-4 py-2 mb-6">{{ $scan->error_message }}</p>
-                @endif
-                <div class="flex items-center justify-center gap-4 mt-4">
-                    <form action="{{ route('dashboard.scan.retry', $scan) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors">
-                            Retry Scan
-                        </button>
-                    </form>
-                    <a href="{{ route('dashboard') }}" class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors">
-                        Back to Dashboard
-                    </a>
+            <div class="bg-white rounded-2xl shadow-sm p-6 mb-8 border-2 border-red-100">
+                <div class="flex items-center gap-5">
+                    <div class="w-14 h-14 flex-shrink-0 bg-red-100 rounded-full flex items-center justify-center">
+                        <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-lg font-bold text-gray-900">Scan Incomplete</h2>
+                        <p class="text-sm text-gray-600 mt-0.5">
+                            @if($pages->count() > 0)
+                                The scan for <strong>{{ $scan->domain }}</strong> didn't finish, but {{ $pages->count() }} {{ str('page')->plural($pages->count()) }} were scanned before it stopped.
+                            @else
+                                We weren't able to complete the scan for <strong>{{ $scan->domain }}</strong>.
+                            @endif
+                        </p>
+                        @if($scan->error_message)
+                            <p class="text-xs text-red-600 mt-1">{{ $scan->error_message }}</p>
+                        @endif
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <form action="{{ route('dashboard.scan.retry', $scan) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors">
+                                Retry Scan
+                            </button>
+                        </form>
+                        <a href="{{ route('dashboard') }}" class="px-5 py-2.5 border border-gray-300 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors">
+                            Dashboard
+                        </a>
+                    </div>
                 </div>
             </div>
+
+            @if($pages->count() > 0)
+                <div class="bg-white rounded-2xl shadow-sm mb-8">
+                    <div class="p-6 border-b border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900">Pages Scanned Before Timeout</h2>
+                                <p class="text-sm text-gray-500 mt-1">{{ $pages->count() }} {{ str('page')->plural($pages->count()) }} were analyzed &mdash; results below are still valid</p>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                Partial
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="divide-y divide-gray-100">
+                        @foreach($pages as $page)
+                            <a href="{{ route('dashboard.scan.page', [$scan, $page]) }}" class="flex items-center justify-between p-5 hover:bg-gray-50 transition-colors group">
+                                <div class="flex items-center gap-4 min-w-0 flex-1">
+                                    <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm
+                                        @if(($page->score ?? 0) >= 90) bg-green-100 text-green-700
+                                        @elseif(($page->score ?? 0) >= 70) bg-yellow-100 text-yellow-700
+                                        @elseif(($page->score ?? 0) >= 50) bg-orange-100 text-orange-700
+                                        @else bg-red-100 text-red-700
+                                        @endif">
+                                        {{ number_format($page->score ?? 0, 0) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="font-medium text-gray-900 truncate">{{ $page->path }}</div>
+                                        @if($page->page_title)
+                                            <div class="text-sm text-gray-500 truncate">{{ $page->page_title }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 flex-shrink-0 ml-4">
+                                    @if($page->errors_count > 0)
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">{{ $page->errors_count }} {{ str('error')->plural($page->errors_count) }}</span>
+                                    @endif
+                                    @if($page->warnings_count > 0)
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">{{ $page->warnings_count }} {{ str('warning')->plural($page->warnings_count) }}</span>
+                                    @endif
+                                    <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
         {{-- Pending / Running State --}}
         @elseif($scan->isPending() || $scan->isRunning())
@@ -286,63 +348,70 @@
                     <div class="bg-white rounded-2xl shadow-sm p-6">
                         <h3 class="font-bold text-gray-900 mb-4">Quick Actions</h3>
                         <div class="space-y-3">
-                            <a href="{{ route('report.pdf', $scan) }}" class="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                Download PDF Report
-                            </a>
-                            <a href="{{ route('report.csv', $scan) }}" class="w-full py-3 px-4 border border-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                Export CSV
-                            </a>
-                            <a href="{{ route('report.json', $scan) }}" class="w-full py-3 px-4 border border-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                                Export JSON
-                            </a>
-                            <div x-data="{ copied: false }">
-                                <button
-                                    @click="
-                                        let md = `# Accessibility Report: {{ $scan->domain }}\n`;
-                                        md += `**URL:** {{ $scan->url }}\n`;
-                                        md += `**Score:** {{ number_format($scan->score, 0) }}/100 ({{ $scan->grade }})\n`;
-                                        md += `**Errors:** {{ $scan->errors_count }} | **Warnings:** {{ $scan->warnings_count }} | **Notices:** {{ $scan->notices_count }}\n\n`;
-                                        @foreach($pages as $page)
-                                        md += `## {{ $page->path }} (Score: {{ number_format($page->score ?? 0, 0) }})\n\n`;
-                                        @if($page->issues->count() > 0)
-                                        @foreach($page->issues as $issue)
-                                        md += `### {{ ucfirst($issue->type) }}: \`{{ $issue->code }}\`\n`;
-                                        md += `{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->message) }}\n\n`;
-                                        @if($issue->selector)
-                                        md += `**Selector:** \`{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->selector) }}\`\n\n`;
-                                        @endif
-                                        @if($issue->context)
-                                        md += `**HTML:**\n\`\`\`html\n{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->context) }}\n\`\`\`\n\n`;
-                                        @endif
-                                        @endforeach
-                                        @else
-                                        md += `No issues found.\n\n`;
-                                        @endif
-                                        @endforeach
-                                        navigator.clipboard.writeText(md);
-                                        copied = true;
-                                        setTimeout(() => copied = false, 2000);
-                                    "
-                                    class="w-full py-3 px-4 border border-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                                    :class="copied && 'border-green-300 text-green-700 bg-green-50'"
-                                >
-                                    <template x-if="!copied">
-                                        <span class="flex items-center gap-2">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
-                                            Copy as Markdown
-                                        </span>
-                                    </template>
-                                    <template x-if="copied">
-                                        <span class="flex items-center gap-2">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                            Copied!
-                                        </span>
-                                    </template>
-                                </button>
-                            </div>
+                            @if(Auth::user()->isPaid())
+                                <a href="{{ route('report.pdf', $scan) }}" class="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                    Download PDF Report
+                                </a>
+                                <a href="{{ route('report.csv', $scan) }}" class="w-full py-3 px-4 border border-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                    Export CSV
+                                </a>
+                                <a href="{{ route('report.json', $scan) }}" class="w-full py-3 px-4 border border-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                                    Export JSON
+                                </a>
+                                <div x-data="{ copied: false }">
+                                    <button
+                                        @click="
+                                            let md = `# Accessibility Report: {{ $scan->domain }}\n`;
+                                            md += `**URL:** {{ $scan->url }}\n`;
+                                            md += `**Score:** {{ number_format($scan->score, 0) }}/100 ({{ $scan->grade }})\n`;
+                                            md += `**Errors:** {{ $scan->errors_count }} | **Warnings:** {{ $scan->warnings_count }} | **Notices:** {{ $scan->notices_count }}\n\n`;
+                                            @foreach($pages as $page)
+                                            md += `## {{ $page->path }} (Score: {{ number_format($page->score ?? 0, 0) }})\n\n`;
+                                            @if($page->issues->count() > 0)
+                                            @foreach($page->issues as $issue)
+                                            md += `### {{ ucfirst($issue->type) }}: \`{{ $issue->code }}\`\n`;
+                                            md += `{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->message) }}\n\n`;
+                                            @if($issue->selector)
+                                            md += `**Selector:** \`{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->selector) }}\`\n\n`;
+                                            @endif
+                                            @if($issue->context)
+                                            md += `**HTML:**\n\`\`\`html\n{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->context) }}\n\`\`\`\n\n`;
+                                            @endif
+                                            @endforeach
+                                            @else
+                                            md += `No issues found.\n\n`;
+                                            @endif
+                                            @endforeach
+                                            navigator.clipboard.writeText(md);
+                                            copied = true;
+                                            setTimeout(() => copied = false, 2000);
+                                        "
+                                        class="w-full py-3 px-4 border border-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                                        :class="copied && 'border-green-300 text-green-700 bg-green-50'"
+                                    >
+                                        <template x-if="!copied">
+                                            <span class="flex items-center gap-2">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                                                Copy as Markdown
+                                            </span>
+                                        </template>
+                                        <template x-if="copied">
+                                            <span class="flex items-center gap-2">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                                Copied!
+                                            </span>
+                                        </template>
+                                    </button>
+                                </div>
+                            @else
+                                <a href="{{ route('billing.pricing') }}" class="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                    Upgrade to Export Reports
+                                </a>
+                            @endif
                             <form action="{{ route('dashboard.scan.store') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="url" value="{{ $scan->url }}">
