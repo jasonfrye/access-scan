@@ -55,35 +55,35 @@ class SetupStripeProducts extends Command
         $this->updateEnvFile('STRIPE_PRICE_MONTHLY', $monthlyPrice->id);
         $this->newLine();
 
-        // Create Lifetime Plan
-        $this->info('Creating Lifetime plan...');
-        $lifetimeProduct = $this->createProduct(
-            'Access Report Card Lifetime',
-            'One-time payment for lifetime access to Access Report Card with 1,000 scans per month'
+        // Create Agency Plan
+        $this->info('Creating Agency plan...');
+        $agencyProduct = $this->createProduct(
+            'Access Report Card Agency',
+            'Monthly subscription to Access Report Card Agency with 200 scans per month, API access, and white-label reports'
         );
 
-        $lifetimePrice = $this->createPrice(
-            $lifetimeProduct->id,
-            19700, // $197.00
-            null // one-time payment
+        $agencyPrice = $this->createPrice(
+            $agencyProduct->id,
+            9900, // $99.00
+            'month'
         );
 
-        $this->line("  Product ID: {$lifetimeProduct->id}");
-        $this->line("  Price ID: {$lifetimePrice->id}");
-        $this->updateEnvFile('STRIPE_PRICE_LIFETIME', $lifetimePrice->id);
+        $this->line("  Product ID: {$agencyProduct->id}");
+        $this->line("  Price ID: {$agencyPrice->id}");
+        $this->updateEnvFile('STRIPE_PRICE_AGENCY', $agencyPrice->id);
         $this->newLine();
 
         // Update plans table
         $this->info('Updating plans table...');
         Plan::where('slug', 'monthly')->update(['stripe_price_id' => $monthlyPrice->id]);
-        Plan::where('slug', 'lifetime')->update(['stripe_lifetime_price_id' => $lifetimePrice->id]);
+        Plan::where('slug', 'agency')->update(['stripe_price_id' => $agencyPrice->id]);
 
         $this->newLine();
         $this->info('✅ Stripe products and prices created successfully!');
         $this->newLine();
         $this->line('Add these to your .env file:');
         $this->line("STRIPE_PRICE_MONTHLY={$monthlyPrice->id}");
-        $this->line("STRIPE_PRICE_LIFETIME={$lifetimePrice->id}");
+        $this->line("STRIPE_PRICE_AGENCY={$agencyPrice->id}");
         $this->newLine();
         $this->line('Your .env file has been updated automatically.');
 

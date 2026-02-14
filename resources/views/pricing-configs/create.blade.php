@@ -43,7 +43,7 @@
 
                 <div class="bg-blue-50 rounded-lg p-6 mb-6">
                     <h3 class="text-lg font-semibold text-white mb-4">Plans Configuration</h3>
-                    <p class="text-blue-100 text-sm mb-4">Define up to 3 plans: free, monthly, lifetime.</p>
+                    <p class="text-blue-100 text-sm mb-4">Define up to 3 plans: free, monthly, and agency.</p>
                 </div>
 
                 <div class="mb-6">
@@ -74,7 +74,7 @@
                                 <option value="">None</option>
                                 <option value="month">Month</option>
                                 <option value="year">Year</option>
-                                <option value="lifetime">Lifetime</option>
+                                <option value="year">Year</option>
                             </select>
                             @error('plans.free.interval')
                         </div>
@@ -134,7 +134,7 @@
                                     class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                 <option value="month" selected>Month</option>
                                 <option value="year">Year</option>
-                                <option value="lifetime">Lifetime</option>
+                                <option value="year">Year</option>
                             </select>
                             @error('plans.monthly.interval')
                         </div>
@@ -169,33 +169,33 @@
                     </div>
 
                 <div class="mb-6 mt-8">
-                    <h4 class="text-base font-semibold text-gray-900 mb-4">Lifetime Plan</h4>
+                    <h4 class="text-base font-semibold text-gray-900 mb-4">Agency Plan</h4>
                     <div class="grid grid-cols-3 gap-4">
                         <div class="col-span-3">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Plan Name</label>
                             <input type="text"
-                                name="plans[lifetime][name]"
-                                value="Lifetime"
+                                name="plans[agency][name]"
+                                value="Agency"
                                 class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
-                            @error('plans.lifetime.name')
+                            @error('plans.agency.name')
                         </div>
                         <div class="col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Price</label>
                             <input type="number"
-                                name="plans[lifetime][price]"
-                                value="197"
+                                name="plans[agency][price]"
+                                value="99"
                                 min="0"
                                 step="1"
                                 class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
-                            @error('plans.lifetime.price')
+                            @error('plans.agency.price')
                         </div>
                         <div class="col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Interval</label>
-                            <select name="plans[lifetime][interval]"
+                            <select name="plans[agency][interval]"
                                     class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
-                                <option value="lifetime" selected>Lifetime</option>
+                                <option value="month" selected>Month</option>
                             </select>
-                            @error('plans.lifetime.interval')
+                            @error('plans.agency.interval')
                         </div>
                     </div>
 
@@ -203,24 +203,24 @@
                         <div class="col-span-3">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Features</label>
                             <input type="text"
-                                name="plans[lifetime][features]"
+                                name="plans[agency][features]"
                                 placeholder="Unlimited, detailed reports, never pay again"
                                 class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
-                            @error('plans.lifetime.features')
+                            @error('plans.agency.features')
                         </div>
                         <div class="col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Button Text</label>
                             <input type="text"
-                                name="plans[lifetime][button_text]"
-                                value="Get Lifetime Access"
+                                name="plans[agency][button_text]"
+                                value="Subscribe to Agency"
                                 class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
-                            @error('plans.lifetime.button_text')
+                            @error('plans.agency.button_text')
                         </div>
                         <div class="col-span-1 flex items-end mt-2">
                             <label class="flex items-center space-x-2">
                                 <input type="checkbox"
-                                    id="plans[lifetime][highlight]"
-                                    name="plans[lifetime][highlight]"
+                                    id="plans[agency][highlight]"
+                                    name="plans[agency][highlight]"
                                     class="h-4 w-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
                                 <span class="text-sm font-medium text-gray-700">Highlight</span>
                             </label>

@@ -14,10 +14,8 @@ class Plan extends Model
         'slug',
         'stripe_price_id',
         'stripe_yearly_price_id',
-        'stripe_lifetime_price_id',
         'price_monthly',
         'price_yearly',
-        'price_lifetime',
         'scan_limit',
         'page_limit_per_scan',
         'scheduled_scan_limit',
@@ -31,7 +29,6 @@ class Plan extends Model
     protected $casts = [
         'price_monthly' => 'decimal:2',
         'price_yearly' => 'decimal:2',
-        'price_lifetime' => 'decimal:2',
         'scan_limit' => 'integer',
         'page_limit_per_scan' => 'integer',
         'scheduled_scan_limit' => 'integer',
@@ -57,7 +54,7 @@ class Plan extends Model
      */
     public function isPaid(): bool
     {
-        return $this->price_monthly > 0 || $this->price_yearly > 0 || $this->price_lifetime > 0;
+        return $this->price_monthly > 0 || $this->price_yearly > 0;
     }
 
     /**
@@ -67,7 +64,6 @@ class Plan extends Model
     {
         return match ($cycle) {
             'yearly' => $this->price_yearly,
-            'lifetime' => $this->price_lifetime,
             default => $this->price_monthly,
         };
     }

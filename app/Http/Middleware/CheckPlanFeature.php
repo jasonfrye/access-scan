@@ -26,8 +26,8 @@ class CheckPlanFeature
             'pdf_export' => $user->isPaid(),
             'csv_export' => $user->isPaid(),
             'json_export' => $user->isPaid(),
-            'api_access' => $user->plan === 'lifetime',
-            'white_label' => $user->plan === 'lifetime',
+            'api_access' => $user->plan === 'agency',
+            'white_label' => $user->plan === 'agency',
             'multi_page_scan' => $user->isPaid(),
             default => false,
         };

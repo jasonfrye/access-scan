@@ -15,13 +15,9 @@
                 <div>
                     <div class="text-2xl font-bold text-gray-900 capitalize">{{ $user->plan }} Plan</div>
                     @if($user->plan !== 'free')
-                        <div class="text-gray-500">
-                            @if($subscription && $subscription->ends_at)
-                                Renews {{ $subscription->ends_at->format('F j, Y') }}
-                            @else
-                                Lifetime access
-                            @endif
-                        </div>
+                        @if($subscription && $subscription->ends_at)
+                            <div class="text-gray-500">Renews {{ $subscription->ends_at->format('F j, Y') }}</div>
+                        @endif
                     @endif
                 </div>
                 <a href="{{ route('billing.pricing') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">

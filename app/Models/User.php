@@ -127,7 +127,7 @@ class User extends Authenticatable
      */
     public function isPaid(): bool
     {
-        return in_array($this->plan, ['monthly', 'lifetime']);
+        return in_array($this->plan, ['monthly', 'agency']);
     }
 
     /**
@@ -171,7 +171,7 @@ class User extends Authenticatable
 
         return match ($this->plan) {
             'monthly' => 50,
-            'lifetime' => 1000,
+            'agency' => 200,
             default => 5,
         };
     }
@@ -193,7 +193,7 @@ class User extends Authenticatable
 
         return match ($this->plan) {
             'monthly' => 100,
-            'lifetime' => 500,
+            'agency' => 200,
             default => 5,
         };
     }
@@ -215,7 +215,7 @@ class User extends Authenticatable
 
         return match ($this->plan) {
             'monthly' => 5,
-            'lifetime' => 10,
+            'agency' => 25,
             default => 0,
         };
     }

@@ -13,7 +13,7 @@ class ReportService
      */
     public function generatePdf(Scan $scan): string
     {
-        $whiteLabel = $scan->user && $scan->user->plan === 'lifetime';
+        $whiteLabel = $scan->user && $scan->user->plan === 'agency';
 
         $pdf = Pdf::loadView('reports.pdf', [
             'scan' => $scan->load(['pages.issues', 'user']),

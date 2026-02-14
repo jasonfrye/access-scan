@@ -26,7 +26,7 @@
                 </p>
 
                 <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                    <a href="{{ route('register') }}?plan=lifetime" class="px-8 py-4 bg-white text-indigo-900 font-bold rounded-xl hover:bg-indigo-50 transition-all hover:scale-105 text-lg shadow-lg shadow-indigo-900/30">
+                    <a href="{{ route('register') }}?plan=agency" class="px-8 py-4 bg-white text-indigo-900 font-bold rounded-xl hover:bg-indigo-50 transition-all hover:scale-105 text-lg shadow-lg shadow-indigo-900/30">
                         Start Your Free Trial
                     </a>
                     <a href="#roi" class="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-xl hover:bg-white/20 transition-all text-lg">
@@ -37,7 +37,7 @@
                 <div class="flex flex-wrap justify-center gap-6 text-sm text-indigo-200">
                     <span class="flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                        1,000 scans/month on Lifetime
+                        200 scans/month on Agency
                     </span>
                     <span class="flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
@@ -91,23 +91,23 @@
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">The Math Speaks for Itself</h2>
-                <p class="text-lg text-gray-600">One Lifetime license. Unlimited upside.</p>
+                <p class="text-lg text-gray-600">One Agency subscription. Unlimited upside.</p>
             </div>
 
             <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden max-w-3xl mx-auto">
                 <div class="grid md:grid-cols-2">
                     <div class="p-8 border-b md:border-b-0 md:border-r border-gray-200">
                         <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-6">Your Cost</h3>
-                        <div class="text-5xl font-bold text-gray-900 mb-2">$197</div>
-                        <p class="text-gray-500">One-time Lifetime license</p>
+                        <div class="text-5xl font-bold text-gray-900 mb-2">$99</div>
+                        <p class="text-gray-500">per month &mdash; Agency plan</p>
                         <ul class="mt-6 space-y-3 text-sm text-gray-600">
                             <li class="flex items-center gap-2">
                                 <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                1,000 scans per month
+                                200 scans per month
                             </li>
                             <li class="flex items-center gap-2">
                                 <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                500 pages per scan
+                                200 pages per scan
                             </li>
                             <li class="flex items-center gap-2">
                                 <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -137,13 +137,13 @@
                                 </div>
                                 <div class="flex items-baseline justify-between">
                                     <span class="text-sm text-gray-500">10 clients &times; 12 months</span>
-                                    <span class="text-3xl font-bold text-green-700">$11,880</span>
+                                    <span class="text-3xl font-bold text-green-700">$11,880/yr</span>
                                 </div>
                             </div>
                             <div class="border-t border-green-200 pt-5">
                                 <div class="flex items-baseline justify-between">
-                                    <span class="text-sm font-semibold text-green-800">ROI on $197 investment</span>
-                                    <span class="text-lg font-bold text-green-700">5,930%</span>
+                                    <span class="text-sm font-semibold text-green-800">Net annual profit</span>
+                                    <span class="text-lg font-bold text-green-700">$10,692/yr</span>
                                 </div>
                             </div>
                         </div>
@@ -259,7 +259,7 @@
                             <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                         @endfor
                     </div>
-                    <p class="text-gray-700 mb-4">"We added a $99/month accessibility monitoring service to 23 existing clients. That's $27K in new annual revenue from a $197 tool. The ROI is absurd."</p>
+                    <p class="text-gray-700 mb-4">"We added a $99/month accessibility monitoring service to 23 existing clients. That's $27K in new annual revenue. The Agency plan pays for itself with a single client."</p>
                     <div class="text-sm"><span class="font-semibold text-gray-900">James P.</span> <span class="text-gray-500">&mdash; Digital Agency Owner, 40+ clients</span></div>
                 </div>
                 <div class="bg-gray-50 rounded-2xl p-8 border border-gray-200">
@@ -280,7 +280,7 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">One Price. No Per-Client Fees.</h2>
-                <p class="text-lg text-gray-600">The Lifetime plan is built for agencies who manage multiple sites.</p>
+                <p class="text-lg text-gray-600">The Agency plan is built for teams who manage multiple sites.</p>
             </div>
 
             <div class="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
@@ -311,23 +311,23 @@
                     </a>
                 </div>
 
-                {{-- Lifetime --}}
+                {{-- Agency --}}
                 <div class="bg-white rounded-2xl border-2 border-indigo-600 p-8 relative shadow-lg shadow-indigo-600/10">
                     <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Best for Agencies</div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-1">Lifetime</h3>
-                    <p class="text-sm text-gray-500 mb-4">Pay once, use forever</p>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">Agency</h3>
+                    <p class="text-sm text-gray-500 mb-4">Built for multi-client teams</p>
                     <div class="mb-6">
-                        <span class="text-4xl font-bold text-gray-900">$197</span>
-                        <span class="text-gray-500">/one-time</span>
+                        <span class="text-4xl font-bold text-gray-900">$99</span>
+                        <span class="text-gray-500">/month</span>
                     </div>
                     <ul class="space-y-3 mb-8 text-sm text-gray-600">
                         <li class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            <span class="font-medium">1,000 scans per month</span>
+                            <span class="font-medium">200 scans per month</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            <span class="font-medium">500 pages per scan</span>
+                            <span class="font-medium">200 pages per scan</span>
                         </li>
                         <li class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -342,8 +342,8 @@
                             Priority support
                         </li>
                     </ul>
-                    <a href="{{ route('register') }}?plan=lifetime" class="block w-full py-3 text-center bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors">
-                        Get Lifetime Access
+                    <a href="{{ route('register') }}?plan=agency" class="block w-full py-3 text-center bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors">
+                        Subscribe to Agency
                     </a>
                 </div>
             </div>
@@ -359,11 +359,11 @@
                 @php
                     $faqs = [
                         ['q' => 'Can I use one account for all my clients?', 'a' => 'Yes. Scan any URL from your dashboard. There are no per-client fees &mdash; just scan limits based on your plan.'],
-                        ['q' => 'Are the PDF reports really white-label?', 'a' => 'On the Lifetime plan, yes. PDF exports are clean, professional reports with no Access Report Card branding. Ready to deliver to clients as-is.'],
+                        ['q' => 'Are the PDF reports really white-label?', 'a' => 'On the Agency plan, yes. PDF exports are clean, professional reports with no Access Report Card branding. Ready to deliver to clients as-is.'],
                         ['q' => 'How does the API work?', 'a' => 'Generate an API key from your profile. Use our REST API to create scans, check status, and retrieve results programmatically. Full documentation is available in your dashboard.'],
                         ['q' => 'What WCAG standard does it test against?', 'a' => 'WCAG 2.1 Level AA &mdash; the standard referenced in most ADA web accessibility lawsuits and regulatory guidance.'],
                         ['q' => 'Can I schedule scans for multiple client sites?', 'a' => 'Absolutely. Set up daily, weekly, or monthly scans for each client domain. You\'ll be alerted if any score drops.'],
-                        ['q' => 'Is there a money-back guarantee?', 'a' => 'Yes. Lifetime purchases include a 30-day money-back guarantee. Monthly plans can be cancelled anytime.'],
+                        ['q' => 'Is there a money-back guarantee?', 'a' => 'All plans can be cancelled anytime. No long-term contracts.'],
                     ];
                 @endphp
 
@@ -387,17 +387,17 @@
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="text-3xl sm:text-4xl font-bold mb-4">Add Accessibility to Your Service Stack</h2>
             <p class="text-xl text-indigo-100 mb-8 max-w-xl mx-auto">
-                One $197 investment. 1,000 scans a month. White-label reports. API access. No monthly fees, ever.
+                200 scans a month. White-label reports. API access. Cancel anytime.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="{{ route('register') }}?plan=lifetime" class="px-10 py-4 bg-white text-indigo-800 font-bold rounded-xl hover:bg-indigo-50 transition-all hover:scale-105 text-lg shadow-lg shadow-indigo-900/30">
-                    Get Lifetime Access &mdash; $197
+                <a href="{{ route('register') }}?plan=agency" class="px-10 py-4 bg-white text-indigo-800 font-bold rounded-xl hover:bg-indigo-50 transition-all hover:scale-105 text-lg shadow-lg shadow-indigo-900/30">
+                    Subscribe to Agency &mdash; $99/mo
                 </a>
                 <a href="{{ route('api.docs') }}" class="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-xl hover:bg-white/20 transition-all text-lg">
                     View API Docs
                 </a>
             </div>
-            <p class="text-sm text-indigo-200 mt-4">30-day money-back guarantee. No questions asked.</p>
+            <p class="text-sm text-indigo-200 mt-4">Cancel anytime. No long-term contracts.</p>
         </div>
     </div>
 </div>

@@ -10,7 +10,7 @@ class GrantUserPlan extends Command
 {
     protected $signature = 'user:grant-plan
                             {email : The user\'s email address}
-                            {plan : The plan slug (monthly or lifetime)}';
+                            {plan : The plan slug (monthly or agency)}';
 
     protected $description = 'Grant a user access to a paid plan without payment';
 
@@ -28,7 +28,7 @@ class GrantUserPlan extends Command
         $plan = Plan::where('slug', $planSlug)->first();
 
         if (! $plan) {
-            $this->error("Invalid plan: {$planSlug}. Use 'monthly' or 'lifetime'.");
+            $this->error("Invalid plan: {$planSlug}. Use 'monthly' or 'agency'.");
 
             return self::FAILURE;
         }

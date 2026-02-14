@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Plan;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Subscription;
@@ -77,33 +76,6 @@ class StripeService
     }
 
     /**
-     * Create a one-time payment for lifetime plan.
-     */
-    public function createLifetimePayment(User $user, int $amount, string $productId): array
-    {
-        if (! $user->stripe_id) {
-            $this->createCustomer($user);
-        }
-
-        $paymentIntent = $this->stripe()->paymentIntents->create([
-            'customer' => $user->stripe_id,
-            'amount' => $amount,
-            'currency' => 'usd',
-            'automatic_payment_methods' => ['enabled' => true],
-            'metadata' => [
-                'user_id' => $user->id,
-                'plan' => 'lifetime',
-                'product_id' => $productId,
-            ],
-        ]);
-
-        return [
-            'client_secret' => $paymentIntent->client_secret,
-            'payment_intent_id' => $paymentIntent->id,
-        ];
-    }
-
-    /**
      * Cancel a subscription.
      */
     public function cancelSubscription(string $subscriptionId): Subscription
@@ -172,49 +144,6 @@ class StripeService
                 'user_id' => $user->id,
             ],
         ]);
-
-        return $session->url;
-    }
-
-    /**
-     * Create checkout session for lifetime one-time payment.
-     */
-    public function createLifetimeCheckoutSession(User $user, string $priceId, string $successUrl, string $cancelUrl, int $discountAmountCents = 0): string
-    {
-        if (! $user->stripe_id) {
-            $this->createCustomer($user);
-        }
-
-        $params = [
-            'customer' => $user->stripe_id,
-            'payment_method_types' => ['card'],
-            'line_items' => [
-                [
-                    'price' => $priceId,
-                    'quantity' => 1,
-                ],
-            ],
-            'mode' => 'payment',
-            'success_url' => $successUrl,
-            'cancel_url' => $cancelUrl,
-            'metadata' => [
-                'user_id' => $user->id,
-                'plan' => 'lifetime',
-            ],
-        ];
-
-        if ($discountAmountCents > 0) {
-            $coupon = $this->stripe()->coupons->create([
-                'amount_off' => $discountAmountCents,
-                'currency' => 'usd',
-                'duration' => 'once',
-                'name' => 'Monthly subscriber upgrade credit',
-                'max_redemptions' => 1,
-            ]);
-            $params['discounts'] = [['coupon' => $coupon->id]];
-        }
-
-        $session = $this->stripe()->checkout->sessions->create($params);
 
         return $session->url;
     }

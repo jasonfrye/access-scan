@@ -101,37 +101,28 @@
                 @endauth
             </div>
 
-            <!-- Lifetime Plan -->
+            <!-- Agency Plan -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Lifetime</h3>
-                <p class="text-gray-500 mb-6">Pay once, scan forever</p>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Agency</h3>
+                <p class="text-gray-500 mb-6">For agencies managing multiple client sites</p>
 
                 <div class="mb-6">
-                    @if(isset($upgradeCredit) && $upgradeCredit > 0)
-                        <span class="text-4xl font-bold text-gray-900">${{ 197 - $upgradeCredit }}</span>
-                        <span class="text-gray-500">/one-time</span>
-                        <div class="mt-2">
-                            <span class="text-sm text-gray-400 line-through">${{ 197 }}</span>
-                            <span class="inline-block ml-2 text-sm font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">${{ $upgradeCredit }} monthly credit applied</span>
-                        </div>
-                    @else
-                        <span class="text-4xl font-bold text-gray-900">$197</span>
-                        <span class="text-gray-500">/one-time</span>
-                    @endif
+                    <span class="text-4xl font-bold text-gray-900">$99</span>
+                    <span class="text-gray-500">/month</span>
                 </div>
 
                 <ul class="space-y-4 mb-8">
                     <li class="flex items-center gap-3">
                         <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                        <span class="text-gray-600 font-medium">1,000 scans per month</span>
+                        <span class="text-gray-600 font-medium">200 scans per month</span>
                     </li>
                     <li class="flex items-center gap-3">
                         <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                        <span class="text-gray-600 font-medium">Up to 500 pages per scan</span>
+                        <span class="text-gray-600 font-medium">Up to 200 pages per scan</span>
                     </li>
                     <li class="flex items-center gap-3">
                         <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                        <span class="text-gray-600">Scheduled scans</span>
+                        <span class="text-gray-600">25 scheduled scans</span>
                     </li>
                     <li class="flex items-center gap-3">
                         <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
@@ -150,14 +141,14 @@
                 @auth
                     <form action="{{ route('billing.subscribe') }}" method="POST">
                         @csrf
-                        <input type="hidden" name="plan" value="lifetime">
+                        <input type="hidden" name="plan" value="agency">
                         <button type="submit" class="block w-full py-3 px-4 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors">
-                            Get Lifetime Access
+                            Subscribe to Agency
                         </button>
                     </form>
                 @else
-                    <a href="{{ route('register') }}?plan=lifetime" class="block w-full py-3 px-4 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors text-center">
-                        Get Lifetime Access
+                    <a href="{{ route('register') }}?plan=agency" class="block w-full py-3 px-4 bg-gray-900 text-white font-semibold rounded-xl hover:bg-gray-800 transition-colors text-center">
+                        Subscribe to Agency
                     </a>
                 @endauth
             </div>
@@ -170,17 +161,17 @@
             <div class="space-y-6">
                 <div class="bg-white rounded-xl p-6">
                     <h3 class="font-semibold text-gray-900 mb-2">Can I change plans later?</h3>
-                    <p class="text-gray-600">Yes! You can upgrade or downgrade your plan at any time. Monthly subscribers can switch to lifetime at any point.</p>
+                    <p class="text-gray-600">Yes! You can upgrade or downgrade your plan at any time from your billing dashboard.</p>
                 </div>
                 
                 <div class="bg-white rounded-xl p-6">
                     <h3 class="font-semibold text-gray-900 mb-2">What payment methods do you accept?</h3>
-                    <p class="text-gray-600">We accept all major credit cards through Stripe. For lifetime plans, we also accept wire transfers for orders over $500.</p>
+                    <p class="text-gray-600">We accept all major credit cards through Stripe.</p>
                 </div>
                 
                 <div class="bg-white rounded-xl p-6">
                     <h3 class="font-semibold text-gray-900 mb-2">Is there a refund policy?</h3>
-                    <p class="text-gray-600">Monthly subscriptions can be cancelled anytime with no refunds for partial months. Lifetime purchases have a 30-day money-back guarantee.</p>
+                    <p class="text-gray-600">All subscriptions can be cancelled anytime with no refunds for partial months.</p>
                 </div>
             </div>
         </div>

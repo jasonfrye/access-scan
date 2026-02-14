@@ -21,6 +21,6 @@ class LandingPageTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Recurring Revenue');
-        $response->assertSee('Get Lifetime Access');
+        $response->assertSee('Subscribe to Agency');
     }
 }

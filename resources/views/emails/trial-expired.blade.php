@@ -23,7 +23,7 @@ You can still use Access Report Card for free — you'll just have:
 
 @component('mail::panel')
 ### Ready to unlock full access?
-Upgrade to Pro for just **$29/month** — or grab **lifetime access for $197**.
+Upgrade to **Pro for $29/month** or **Agency for $99/month** with API access and white-label reports.
 @endcomponent
 
 @component('mail::button', ['url' => route('billing.pricing'), 'color' => 'primary'])

@@ -19,18 +19,11 @@ class BillingController extends Controller
      */
     public function pricing()
     {
-        $plans = Plan::where('is_active', true)->orderBy('price')->get();
-        $user = Auth::user();
-        $upgradeCredit = 0;
-
-        if ($user && $user->plan === 'monthly') {
-            $upgradeCredit = 29; // Credit their most recent monthly payment
-        }
+        $plans = Plan::where('is_active', true)->orderBy('sort_order')->get();
 
         return view('billing.pricing', [
             'plans' => $plans,
             'stripeKey' => config('cashier.key'),
-            'upgradeCredit' => $upgradeCredit,
         ]);
     }
 
@@ -81,24 +74,12 @@ class BillingController extends Controller
     public function subscribe(Request $request)
     {
         $request->validate([
-            'plan' => 'required|in:monthly,lifetime',
+            'plan' => 'required|in:monthly,agency',
         ]);
 
         $user = Auth::user();
         $plan = Plan::where('slug', $request->plan)->firstOrFail();
 
-        if ($request->plan === 'lifetime') {
-            return $this->handleLifetimePurchase($user, $plan);
-        }
-
-        return $this->handleSubscription($user, $plan);
-    }
-
-    /**
-     * Handle monthly subscription.
-     */
-    protected function handleSubscription($user, $plan)
-    {
         if (! $user->stripe_id) {
             $this->stripeService->createCustomer($user);
         }
@@ -108,28 +89,6 @@ class BillingController extends Controller
             $plan->stripe_price_id,
             route('billing.success').'?session_id={CHECKOUT_SESSION_ID}',
             route('billing.cancel')
-        );
-
-        return redirect($checkoutUrl);
-    }
-
-    /**
-     * Handle lifetime one-time purchase.
-     */
-    protected function handleLifetimePurchase($user, $plan)
-    {
-        if (! $user->stripe_id) {
-            $this->stripeService->createCustomer($user);
-        }
-
-        $discountAmount = $user->plan === 'monthly' ? 2900 : 0; // $29.00 in cents
-
-        $checkoutUrl = $this->stripeService->createLifetimeCheckoutSession(
-            $user,
-            $plan->stripe_lifetime_price_id ?? $plan->stripe_price_id,
-            route('billing.success').'?session_id={CHECKOUT_SESSION_ID}&plan=lifetime',
-            route('billing.cancel'),
-            $discountAmount
         );
 
         return redirect($checkoutUrl);
@@ -149,20 +108,6 @@ class BillingController extends Controller
                 $session = $stripe->checkout->sessions->retrieve($sessionId, [
                     'expand' => ['subscription'],
                 ]);
-
-                // Handle lifetime one-time payment
-                if ($session->mode === 'payment' && $session->payment_status === 'paid') {
-                    $plan = Plan::where('slug', 'lifetime')->first();
-
-                    $user->update([
-                        'plan' => 'lifetime',
-                        'scan_limit' => $plan?->scan_limit ?? 1000,
-                    ]);
-
-                    Log::info('User upgraded to lifetime after checkout', [
-                        'user_id' => $user->id,
-                    ]);
-                }
 
                 // Handle subscription checkout
                 if ($session->subscription && $session->subscription->status === 'active') {

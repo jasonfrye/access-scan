@@ -29,7 +29,7 @@
                 </ul>
 
                 <h2 class="text-xl font-semibold text-gray-900 mt-8">4. Plans and Billing</h2>
-                <p>Free accounts are subject to scan and page limits. Paid plans are billed according to the pricing displayed at the time of purchase. Monthly subscriptions renew automatically until canceled. Lifetime plans provide access for the lifetime of the Service.</p>
+                <p>Free accounts are subject to scan and page limits. Paid plans are billed according to the pricing displayed at the time of purchase. All subscriptions renew automatically until canceled.</p>
                 <p>You may cancel your subscription at any time from your billing page. Cancellation takes effect at the end of the current billing period. We do not offer refunds for partial billing periods.</p>
 
                 <h2 class="text-xl font-semibold text-gray-900 mt-8">5. Scan Results and Accuracy</h2>

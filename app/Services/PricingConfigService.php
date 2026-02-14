@@ -57,6 +57,7 @@ class PricingConfigService
         // Last resort: create default
         $config = $this->createDefault();
         $this->setCookie($config);
+
         return $config;
     }
 
@@ -103,6 +104,7 @@ class PricingConfigService
     public function activate(PricingConfig $config): bool
     {
         $config->setAsActive();
+
         return true;
     }
 
@@ -128,11 +130,11 @@ class PricingConfigService
                         'interval' => 'month',
                         'features' => ['50 scans/month', '100 pages/scan', 'PDF exports', 'Scheduled scans'],
                     ],
-                    'lifetime' => [
-                        'name' => 'Lifetime',
-                        'price' => 197,
-                        'interval' => 'lifetime',
-                        'features' => ['Unlimited', '100 pages/scan', 'PDF exports', 'Scheduled scans', 'Never pay again'],
+                    'agency' => [
+                        'name' => 'Agency',
+                        'price' => 99,
+                        'interval' => 'month',
+                        'features' => ['200 scans/month', '200 pages/scan', 'White-label PDF', 'API access', '25 scheduled scans'],
                     ],
                 ],
                 'features_list' => ['Automated scans', 'PDF reports', 'WCAG compliance'],

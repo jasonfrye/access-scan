@@ -29,17 +29,17 @@ class GrantUserPlanTest extends TestCase
         $this->assertEquals(50, $user->scan_limit);
     }
 
-    public function test_grants_lifetime_plan_to_user(): void
+    public function test_grants_agency_plan_to_user(): void
     {
         $user = User::factory()->create(['plan' => 'free', 'scan_limit' => 5]);
 
-        $this->artisan('user:grant-plan', ['email' => $user->email, 'plan' => 'lifetime'])
+        $this->artisan('user:grant-plan', ['email' => $user->email, 'plan' => 'agency'])
             ->expectsOutputToContain('Granted')
             ->assertExitCode(0);
 
         $user->refresh();
-        $this->assertEquals('lifetime', $user->getRawOriginal('plan'));
-        $this->assertEquals(1000, $user->scan_limit);
+        $this->assertEquals('agency', $user->getRawOriginal('plan'));
+        $this->assertEquals(200, $user->scan_limit);
     }
 
     public function test_fails_for_unknown_email(): void
