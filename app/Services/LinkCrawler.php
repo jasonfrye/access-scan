@@ -79,6 +79,11 @@ class LinkCrawler
     protected array $disallowedUrls = [];
 
     /**
+     * URLs that have been queued (for deduplication).
+     */
+    protected array $queuedUrls = [];
+
+    /**
      * Crawl a website and discover all internal pages.
      */
     public function crawl(string $url, ?int $maxPages = null, ?int $maxDepth = null): array
@@ -106,6 +111,7 @@ class LinkCrawler
         $this->queue = [
             ['url' => $url, 'depth' => 0],
         ];
+        $this->queuedUrls = [$url => true];
 
         // Process the queue
         $this->processQueue();
@@ -201,8 +207,8 @@ class LinkCrawler
 
                 $html = (string) $response->getBody();
 
-                // Add to internal URLs if we haven't seen it
-                if (! isset($this->internalUrls[$url])) {
+                // Add to internal URLs if we haven't seen it and haven't exceeded limit
+                if (! isset($this->internalUrls[$url]) && count($this->internalUrls) < $this->maxPages) {
                     $this->internalUrls[$url] = [
                         'url' => $url,
                         'status' => $status,
@@ -215,13 +221,14 @@ class LinkCrawler
                     $links = $this->extractLinks($html, $url);
 
                     foreach ($links as $link) {
-                        if (! isset($this->processed[$link]) && ! isset($this->queue[$link])) {
-                            // Only add internal links within max depth
+                        if (! isset($this->processed[$link]) && ! isset($this->queuedUrls[$link])) {
+                            // Only add internal links within max depth and page limit
                             if ($this->isInternalLink($link) && count($this->internalUrls) < $this->maxPages) {
                                 $this->queue[] = [
                                     'url' => $link,
                                     'depth' => $depth + 1,
                                 ];
+                                $this->queuedUrls[$link] = true;
                             } elseif (! $this->isInternalLink($link)) {
                                 if (! isset($this->externalUrls[$link])) {
                                     $this->externalUrls[$link] = $link;

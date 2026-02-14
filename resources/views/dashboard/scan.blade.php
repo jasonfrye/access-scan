@@ -77,45 +77,105 @@
 
         {{-- Pending / Running State --}}
         @elseif($scan->isPending() || $scan->isRunning())
-            <div class="bg-white rounded-2xl shadow-sm p-12 text-center mb-8">
-                <div class="w-20 h-20 mx-auto bg-indigo-100 rounded-full flex items-center justify-center mb-6 scanning">
-                    <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">
-                    {{ $scan->isRunning() ? 'Scan In Progress' : 'Scan Queued' }}
-                </h2>
-                <p class="text-gray-600 mb-6">
-                    {{ $scan->isRunning() ? 'We\'re scanning your site now. This page will update automatically.' : 'Your scan is in the queue and will start shortly.' }}
-                </p>
-                <div x-data="{
-                    index: 0,
-                    messages: [
-                        'Warming up the accessibility engines...',
-                        'Teaching robots to read alt text...',
-                        'Asking every button if it has a label...',
-                        'Interrogating your heading hierarchy...',
-                        'Counting contrast ratios on our fingers...',
-                        'Politely requesting your CSS cooperate...',
-                        'Checking if screen readers would swipe right...',
-                        'Bribing the DOM for insider information...',
-                        'Making sure links actually go somewhere...',
-                        'Judging your color choices (respectfully)...',
-                        'Consulting the WCAG sacred texts...',
-                        'Arguing with ARIA about proper roles...',
-                        'Verifying forms aren\'t playing hide and seek...',
-                        'Auditing tab order for cutting in line...',
-                    ],
-                    start() { setInterval(() => { this.index = (this.index + 1) % this.messages.length }, 3000) }
-                }" x-init="start()" class="inline-flex items-center gap-2 text-sm text-indigo-600 font-medium">
-                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                    <span x-text="messages[index]" x-transition></span>
+            {{-- Progress Banner --}}
+            <div class="bg-white rounded-2xl shadow-sm p-6 mb-8 border-2 border-indigo-100">
+                <div class="flex items-center gap-5">
+                    <div class="w-14 h-14 flex-shrink-0 bg-indigo-100 rounded-full flex items-center justify-center scanning">
+                        <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-lg font-bold text-gray-900">
+                            {{ $scan->isRunning() ? 'Scan In Progress' : 'Scan Queued' }}
+                        </h2>
+                        <p class="text-sm text-gray-600 mt-0.5">
+                            @if($pages->count() > 0)
+                                {{ $pages->count() }} {{ str('page')->plural($pages->count()) }} scanned so far. Still working on the rest &mdash; this page refreshes automatically.
+                            @else
+                                {{ $scan->isRunning() ? 'Scanning your site now. Results will appear here as pages complete.' : 'Your scan is in the queue and will start shortly.' }}
+                            @endif
+                        </p>
+                        <div x-data="{
+                            index: 0,
+                            messages: [
+                                'Warming up the accessibility engines...',
+                                'Teaching robots to read alt text...',
+                                'Asking every button if it has a label...',
+                                'Interrogating your heading hierarchy...',
+                                'Counting contrast ratios on our fingers...',
+                                'Politely requesting your CSS cooperate...',
+                                'Checking if screen readers would swipe right...',
+                                'Bribing the DOM for insider information...',
+                                'Making sure links actually go somewhere...',
+                                'Judging your color choices (respectfully)...',
+                                'Consulting the WCAG sacred texts...',
+                                'Arguing with ARIA about proper roles...',
+                                'Verifying forms aren\'t playing hide and seek...',
+                                'Auditing tab order for cutting in line...',
+                            ],
+                            start() { setInterval(() => { this.index = (this.index + 1) % this.messages.length }, 3000) }
+                        }" x-init="start()" class="inline-flex items-center gap-2 text-xs text-indigo-600 font-medium mt-2">
+                            <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span x-text="messages[index]" x-transition></span>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            {{-- Show pages already scanned --}}
+            @if($pages->count() > 0)
+                <div class="bg-white rounded-2xl shadow-sm mb-8">
+                    <div class="p-6 border-b border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900">Pages Scanned So Far</h2>
+                                <p class="text-sm text-gray-500 mt-1">{{ $pages->count() }} {{ str('page')->plural($pages->count()) }} completed &mdash; more on the way</p>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+                                <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></span>
+                                Live
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="divide-y divide-gray-100">
+                        @foreach($pages as $page)
+                            <a href="{{ route('dashboard.scan.page', [$scan, $page]) }}" class="flex items-center justify-between p-5 hover:bg-gray-50 transition-colors group">
+                                <div class="flex items-center gap-4 min-w-0 flex-1">
+                                    <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm
+                                        @if(($page->score ?? 0) >= 90) bg-green-100 text-green-700
+                                        @elseif(($page->score ?? 0) >= 70) bg-yellow-100 text-yellow-700
+                                        @elseif(($page->score ?? 0) >= 50) bg-orange-100 text-orange-700
+                                        @else bg-red-100 text-red-700
+                                        @endif">
+                                        {{ number_format($page->score ?? 0, 0) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="font-medium text-gray-900 truncate">{{ $page->path }}</div>
+                                        @if($page->page_title)
+                                            <div class="text-sm text-gray-500 truncate">{{ $page->page_title }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 flex-shrink-0 ml-4">
+                                    @if($page->errors_count > 0)
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">{{ $page->errors_count }} {{ str('error')->plural($page->errors_count) }}</span>
+                                    @endif
+                                    @if($page->warnings_count > 0)
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">{{ $page->warnings_count }} {{ str('warning')->plural($page->warnings_count) }}</span>
+                                    @endif
+                                    <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
             <script>
                 setTimeout(function() { window.location.reload(); }, 5000);

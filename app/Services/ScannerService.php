@@ -153,8 +153,9 @@ class ScannerService
             'pages_found' => $crawlResult['total_pages'],
         ]);
 
-        // Scan each discovered page
-        foreach ($crawlResult['pages'] as $pageInfo) {
+        // Scan each discovered page (enforce max pages as safety net)
+        $pagesToScan = array_slice($crawlResult['pages'], 0, $maxPages);
+        foreach ($pagesToScan as $pageInfo) {
             try {
                 $result = $this->scanPage($pageInfo['url']);
 
