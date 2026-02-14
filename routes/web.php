@@ -84,6 +84,10 @@ Route::get('/api/docs', function () {
 Route::get('/privacy', fn () => view('legal.privacy'))->name('privacy');
 Route::get('/terms', fn () => view('legal.terms'))->name('terms');
 
+// Landing pages for ad campaigns
+Route::get('/lp/small-business', fn () => view('landing.small-business'))->name('landing.small-business');
+Route::get('/lp/agencies', fn () => view('landing.agencies'))->name('landing.agencies');
+
 // Test pages for scanner validation (static pages with intentional accessibility issues)
 Route::get('/test/good', fn () => view('test-pages.good'))->name('test.good');
 Route::get('/test/mediocre', fn () => view('test-pages.mediocre'))->name('test.mediocre');
