@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', config('app.name', 'AccessScan'))</title>
+    <title>@yield('title', config('app.name', 'Access Report Card'))</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -116,10 +116,12 @@
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
                     <a href="{{ route('home') }}" class="flex items-center gap-2 group">
-                        <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 2h6a1 1 0 011 1v1H8V3a1 1 0 011-1z"/>
+                            <rect x="5" y="4" width="14" height="18" rx="2" stroke-width="1.75"/>
+                            <text x="12" y="15.5" text-anchor="middle" font-size="8" font-weight="bold" font-family="sans-serif" fill="currentColor" stroke="none">A+</text>
                         </svg>
-                        <span class="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">AccessScan</span>
+                        <span class="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">Access Report Card</span>
                     </a>
                 </div>
 
@@ -154,10 +156,12 @@
             <div class="grid md:grid-cols-4 gap-8">
                 <div class="col-span-2">
                     <div class="flex items-center gap-2 mb-4">
-                        <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 2h6a1 1 0 011 1v1H8V3a1 1 0 011-1z"/>
+                            <rect x="5" y="4" width="14" height="18" rx="2" stroke-width="1.75"/>
+                            <text x="12" y="15.5" text-anchor="middle" font-size="8" font-weight="bold" font-family="sans-serif" fill="currentColor" stroke="none">A+</text>
                         </svg>
-                        <span class="text-lg font-bold text-gray-900">AccessScan</span>
+                        <span class="text-lg font-bold text-gray-900">Access Report Card</span>
                     </div>
                     <p class="text-gray-600 max-w-md">
                         Making website accessibility simple and affordable for small businesses. WCAG 2.1 AA compliance made easy.
@@ -173,12 +177,12 @@
                 <div>
                     <h3 class="font-semibold text-gray-900 mb-3">Company</h3>
                     <ul class="space-y-2">
-                        <li><a href="mailto:support@accessscan.app" class="text-gray-600 hover:text-gray-900">Support</a></li>
+                        <li><a href="mailto:support@accessreportcard.com" class="text-gray-600 hover:text-gray-900">Support</a></li>
                     </ul>
                 </div>
             </div>
             <div class="border-t border-gray-200 mt-8 pt-8 text-center text-sm text-gray-500">
-                <p>&copy; {{ date('Y') }} AccessScan. Making the web accessible for everyone.</p>
+                <p>&copy; {{ date('Y') }} Access Report Card. Making the web accessible for everyone.</p>
             </div>
         </div>
     </footer>

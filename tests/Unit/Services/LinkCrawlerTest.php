@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Services;
 
-use Tests\TestCase;
 use App\Services\LinkCrawler;
+use Tests\TestCase;
 
 class LinkCrawlerTest extends TestCase
 {
@@ -12,7 +12,7 @@ class LinkCrawlerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->crawler = new LinkCrawler();
+        $this->crawler = new LinkCrawler;
     }
 
     /** @test */
@@ -223,12 +223,12 @@ class LinkCrawlerTest extends TestCase
         // so switch cases like 'user-agent' don't match 'user-agent:'
         // This test documents the current buggy behavior
 
-        $robotsTxt = "
+        $robotsTxt = '
 User-agent: *
 Disallow: /admin/
 Disallow: /private/
 Allow: /admin/public
-";
+';
 
         $this->invokeProtectedMethod($this->crawler, 'parseRobotsTxt', [$robotsTxt]);
 
@@ -244,11 +244,11 @@ Allow: /admin/public
         // NOTE: Same bug as above - robots.txt parsing is broken
         // This test documents the current buggy behavior
 
-        $robotsTxt = "
+        $robotsTxt = '
 User-agent: *
 Disallow: /admin/
 Allow: /admin/login
-";
+';
 
         $this->invokeProtectedMethod($this->crawler, 'parseRobotsTxt', [$robotsTxt]);
 
@@ -264,13 +264,13 @@ Allow: /admin/login
         // NOTE: Same bug as above - robots.txt parsing is broken
         // This test documents the current buggy behavior
 
-        $robotsTxt = "
+        $robotsTxt = '
 User-agent: *
 Disallow: /admin/
 
-User-agent: AccessScan
+User-agent: AccessReportCard
 Disallow: /private/
-";
+';
 
         $this->invokeProtectedMethod($this->crawler, 'parseRobotsTxt', [$robotsTxt]);
 

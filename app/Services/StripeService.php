@@ -177,6 +177,49 @@ class StripeService
     }
 
     /**
+     * Create checkout session for lifetime one-time payment.
+     */
+    public function createLifetimeCheckoutSession(User $user, string $priceId, string $successUrl, string $cancelUrl, int $discountAmountCents = 0): string
+    {
+        if (! $user->stripe_id) {
+            $this->createCustomer($user);
+        }
+
+        $params = [
+            'customer' => $user->stripe_id,
+            'payment_method_types' => ['card'],
+            'line_items' => [
+                [
+                    'price' => $priceId,
+                    'quantity' => 1,
+                ],
+            ],
+            'mode' => 'payment',
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'metadata' => [
+                'user_id' => $user->id,
+                'plan' => 'lifetime',
+            ],
+        ];
+
+        if ($discountAmountCents > 0) {
+            $coupon = $this->stripe()->coupons->create([
+                'amount_off' => $discountAmountCents,
+                'currency' => 'usd',
+                'duration' => 'once',
+                'name' => 'Monthly subscriber upgrade credit',
+                'max_redemptions' => 1,
+            ]);
+            $params['discounts'] = [['coupon' => $coupon->id]];
+        }
+
+        $session = $this->stripe()->checkout->sessions->create($params);
+
+        return $session->url;
+    }
+
+    /**
      * Create portal session for billing management.
      */
     public function createPortalSession(User $user, string $returnUrl): string

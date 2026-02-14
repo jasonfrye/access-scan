@@ -16,7 +16,7 @@ class ScanPagesTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200);
-        $response->assertSee('AccessScan');
+        $response->assertSee('Access Report Card');
     }
 
     public function test_scan_index_page_loads_successfully(): void

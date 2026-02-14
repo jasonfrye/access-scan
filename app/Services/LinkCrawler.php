@@ -26,7 +26,7 @@ class LinkCrawler
     /**
      * User agent to use for requests.
      */
-    protected string $userAgent = 'AccessScan/1.0 (+https://accessscan.app)';
+    protected string $userAgent = 'AccessReportCard/1.0 (+https://accessreportcard.com)';
 
     /**
      * The base URL being crawled.
@@ -299,7 +299,7 @@ class LinkCrawler
 
             switch ($directive) {
                 case 'user-agent':
-                    if ($value === '*' || stripos($value, 'accessscan') !== false) {
+                    if ($value === '*' || stripos($value, 'accessreportcard') !== false) {
                         $isRelevantBlock = true;
                         $currentDisallowed = [];
                     } else {

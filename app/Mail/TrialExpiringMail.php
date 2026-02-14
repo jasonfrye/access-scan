@@ -22,9 +22,9 @@ class TrialExpiringMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         $subject = match ($this->daysLeft) {
-            3 => 'Your AccessScan trial ends in 3 days',
-            1 => 'Your AccessScan trial ends tomorrow',
-            default => 'Your AccessScan trial ends in '.$this->daysLeft.' days',
+            3 => 'Your Access Report Card trial ends in 3 days',
+            1 => 'Your Access Report Card trial ends tomorrow',
+            default => 'Your Access Report Card trial ends in '.$this->daysLeft.' days',
         };
 
         return new Envelope(

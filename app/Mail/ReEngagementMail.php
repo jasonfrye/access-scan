@@ -22,7 +22,7 @@ class ReEngagementMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'We miss you! Come back to AccessScan',
+            subject: 'We miss you! Come back to Access Report Card',
         );
     }
 

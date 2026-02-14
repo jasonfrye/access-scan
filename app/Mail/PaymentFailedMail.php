@@ -26,7 +26,7 @@ class PaymentFailedMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Action Required - Payment Failed for Your AccessScan Subscription',
+            subject: 'Action Required - Payment Failed for Your Access Report Card Subscription',
         );
     }
 

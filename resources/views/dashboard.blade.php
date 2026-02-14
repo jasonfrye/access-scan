@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@section('title', 'Dashboard - AccessScan')
+@section('title', 'Dashboard - Access Report Card')
 
 @section('content')
 <div class="min-h-screen bg-gray-50 py-8">
@@ -92,9 +92,9 @@
                             <h2 class="text-2xl font-bold text-gray-900">Scan History</h2>
                             <p class="text-sm text-gray-500 mt-1">Your recent accessibility scans</p>
                         </div>
-                        <a href="{{ route('home') }}" class="px-5 py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-all hover:scale-105">
+                        <button x-data @click="$dispatch('open-modal', 'new-scan')" class="px-5 py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-all hover:scale-105">
                             + New Scan
-                        </a>
+                        </button>
                     </div>
 
                     @if($scans->count() > 0)
@@ -196,7 +196,19 @@
             <!-- Sidebar -->
             <div class="space-y-6">
                 <!-- Quick Scan Widget -->
-                <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-6 text-white shadow-lg">
+                <div class="relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-6 text-white shadow-lg">
+                    @if($stats['scans_remaining'] <= 0)
+                        <div class="absolute inset-0 bg-gray-900/70 backdrop-blur-sm rounded-2xl z-10 flex flex-col items-center justify-center p-6 text-center">
+                            <svg class="w-10 h-10 text-white/80 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <p class="text-white font-semibold mb-1">No Scans Remaining</p>
+                            <p class="text-white/70 text-sm mb-4">Upgrade your plan to run more scans</p>
+                            <a href="{{ route('billing.pricing') }}" class="px-5 py-2.5 bg-white text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-all text-sm">
+                                Upgrade Now
+                            </a>
+                        </div>
+                    @endif
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
@@ -204,36 +216,12 @@
                         <h3 class="font-bold text-lg">Quick Scan</h3>
                     </div>
                     <p class="text-blue-100 text-sm mb-4">Scan another website instantly</p>
-                    <form action="{{ route('dashboard.scan.store') }}" method="POST" class="space-y-3" x-data="{ submitting: false }" @submit="submitting = true">
-                        @csrf
-                        <input
-                            type="url"
-                            name="url"
-                            placeholder="https://example.com"
-                            class="w-full px-4 py-3 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50 font-mono"
-                            required
-                            :disabled="submitting"
-                        />
-                        <button type="submit" class="w-full px-4 py-3 bg-white text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-all hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100" :disabled="submitting">
-                            <template x-if="!submitting">
-                                <span class="flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                    </svg>
-                                    Start Scan
-                                </span>
-                            </template>
-                            <template x-if="submitting">
-                                <span class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Starting Scan...
-                                </span>
-                            </template>
-                        </button>
-                    </form>
+                    <button x-data @click="$dispatch('open-modal', 'new-scan')" class="w-full px-4 py-3 bg-white text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-all hover:scale-105 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        Start New Scan
+                    </button>
                 </div>
 
                 <!-- Trend Chart -->
@@ -352,6 +340,112 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Scan Modal -->
+<div x-data="{ open: false, submitting: false }"
+     @open-modal.window="if ($event.detail === 'new-scan') { open = true; $nextTick(() => $refs.scanUrl.focus()); }"
+     x-show="open"
+     class="fixed inset-0 z-50 overflow-y-auto"
+     style="display: none;"
+     x-transition.opacity>
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div x-show="open"
+             @click="open = false"
+             class="fixed inset-0 bg-gray-900/50 transition-opacity"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"></div>
+
+        <div class="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6"
+             x-show="open"
+             @click.stop
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">New Scan</h3>
+                <button @click="open = false" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form action="{{ route('dashboard.scan.store') }}" method="POST" @submit="submitting = true">
+                @csrf
+
+                <div class="space-y-4">
+                    <div>
+                        <label for="scan_url" class="block text-sm font-medium text-gray-700 mb-2">Website URL</label>
+                        <input
+                            type="url"
+                            name="url"
+                            id="scan_url"
+                            x-ref="scanUrl"
+                            placeholder="https://example.com"
+                            required
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                        />
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <p class="text-sm font-medium text-gray-700 mb-3">Scan Type</p>
+                        <div class="space-y-2">
+                            <label class="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:border-blue-300 transition-colors">
+                                <input type="radio" name="scan_type" value="full" checked class="mt-0.5 w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">Full Site Scan</div>
+                                    <div class="text-xs text-gray-500">Crawl and scan up to {{ Auth::user()->getMaxPagesPerScan() }} pages</div>
+                                </div>
+                            </label>
+                            <label class="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:border-blue-300 transition-colors">
+                                <input type="radio" name="scan_type" value="single" class="mt-0.5 w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">Single Page</div>
+                                    <div class="text-xs text-gray-500">Scan only the URL entered above</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>{{ $stats['scans_remaining'] }} scans remaining this month</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" @click="open = false" class="flex-1 py-3 px-4 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 py-3 px-4 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2" :disabled="submitting">
+                        <template x-if="!submitting">
+                            <span>Start Scan</span>
+                        </template>
+                        <template x-if="submitting">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Starting...
+                            </span>
+                        </template>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

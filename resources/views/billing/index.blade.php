@@ -1,6 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.guest')
 
-@section('title', 'Billing - AccessScan')
+@section('title', 'Billing - Access Report Card')
 
 @section('content')
 <div class="min-h-screen bg-gray-50 py-8">
@@ -16,8 +16,8 @@
                     <div class="text-2xl font-bold text-gray-900 capitalize">{{ $user->plan }} Plan</div>
                     @if($user->plan !== 'free')
                         <div class="text-gray-500">
-                            @if($user->subscription)
-                                Renews {{ $user->subscription->ends_at->format('F j, Y') }}
+                            @if($subscription && $subscription->ends_at)
+                                Renews {{ $subscription->ends_at->format('F j, Y') }}
                             @else
                                 Lifetime access
                             @endif
@@ -74,7 +74,7 @@
                     </div>
                 </a>
 
-                @if($user->subscription && !$user->subscription->canceled())
+                @if($subscription && !$subscription->canceled())
                     <form action="{{ route('billing.cancel') }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel?')">
                         @csrf
                         <button type="submit" class="w-full flex items-center gap-4 p-4 border border-red-200 rounded-xl hover:bg-red-50 transition-colors text-left">
@@ -83,11 +83,11 @@
                             </div>
                             <div>
                                 <div class="font-medium text-red-900">Cancel Subscription</div>
-                                <div class="text-sm text-red-700">Continue until {{ $user->subscription->ends_at->format('F j, Y') }}</div>
+                                <div class="text-sm text-red-700">{{ $subscription->ends_at ? 'Continue until ' . $subscription->ends_at->format('F j, Y') : 'Cancels immediately' }}</div>
                             </div>
                         </button>
                     </form>
-                @elseif($user->subscription && $user->subscription->canceled())
+                @elseif($subscription && $subscription->canceled())
                     <form action="{{ route('billing.resume') }}" method="POST">
                         @csrf
                         <button type="submit" class="w-full flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-left">
@@ -106,28 +106,30 @@
         @endif
 
         <!-- Billing History -->
-        @if(isset($invoices) && $invoices->count() > 0)
+        @if((isset($charges) && $charges->count() > 0) || (isset($invoices) && $invoices->count() > 0))
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
             <h2 class="text-xl font-bold text-gray-900 mb-6">Billing History</h2>
-            
+
             <div class="space-y-4">
-                @foreach($invoices as $invoice)
+                @foreach($charges as $charge)
                     <div class="flex items-center justify-between py-4 border-b border-gray-100 last:border-0">
                         <div>
                             <div class="font-medium text-gray-900">
-                                {{ $invoice->description ?? 'AccessScan Subscription' }}
+                                {{ $charge->description ?? 'Access Report Card Payment' }}
                             </div>
                             <div class="text-sm text-gray-500">
-                                {{ $invoice->date()->format('F j, Y') }}
+                                {{ \Carbon\Carbon::createFromTimestamp($charge->created)->format('F j, Y') }}
                             </div>
                         </div>
                         <div class="flex items-center gap-4">
                             <span class="font-medium text-gray-900">
-                                ${{ number_format($invoice->total / 100, 2) }}
+                                ${{ number_format($charge->amount / 100, 2) }}
                             </span>
-                            <a href="{{ route('billing.invoice', $invoice->id) }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
-                                Download
-                            </a>
+                            @if($charge->receipt_url)
+                                <a href="{{ $charge->receipt_url }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                                    Receipt
+                                </a>
+                            @endif
                         </div>
                     </div>
                 @endforeach

@@ -1,13 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.guest')
 
-@section('title', 'API Documentation - AccessScan')
+@section('title', 'API Documentation - Access Report Card')
 
 @section('content')
 <div class="min-h-screen bg-gray-50">
     <div class="container mx-auto px-4 py-8">
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900">API Documentation</h1>
-            <p class="text-gray-600 mt-2">Integrate AccessScan accessibility testing into your applications.</p>
+            <p class="text-gray-600 mt-2">Integrate Access Report Card accessibility testing into your applications.</p>
         </div>
 
         <div class="grid md:grid-cols-4 gap-8">
@@ -258,7 +258,7 @@
 
                     <div class="mb-6">
                         <h4 class="font-semibold text-gray-900 mb-2">cURL</h4>
-                        <pre class="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto"><code>curl -X POST https://api.accessscan.app/v1/scans \
+                        <pre class="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto"><code>curl -X POST https://api.accessreportcard.com/v1/scans \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com"}'</code></pre>
@@ -266,7 +266,7 @@
 
                     <div class="mb-6">
                         <h4 class="font-semibold text-gray-900 mb-2">JavaScript (Node.js)</h4>
-                        <pre class="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto"><code>const response = await fetch('https://api.accessscan.app/v1/scans', {
+                        <pre class="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto"><code>const response = await fetch('https://api.accessreportcard.com/v1/scans', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
@@ -284,7 +284,7 @@ console.log(data);</code></pre>
                         <pre class="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto"><code>import requests
 
 response = requests.post(
-    'https://api.accessscan.app/v1/scans',
+    'https://api.accessreportcard.com/v1/scans',
     headers={'Authorization': 'Bearer YOUR_API_KEY'},
     json={'url': 'https://example.com'}
 )
@@ -301,19 +301,19 @@ print(response.json())</code></pre>
                     <div class="grid sm:grid-cols-2 gap-4">
                         <a href="#" class="block p-4 border rounded-lg hover:bg-gray-50">
                             <h4 class="font-semibold text-gray-900">Python</h4>
-                            <p class="text-gray-500 text-sm">pip install accessscan</p>
+                            <p class="text-gray-500 text-sm">pip install access-report-card</p>
                         </a>
                         <a href="#" class="block p-4 border rounded-lg hover:bg-gray-50">
                             <h4 class="font-semibold text-gray-900">Node.js</h4>
-                            <p class="text-gray-500 text-sm">npm install @accessscan/sdk</p>
+                            <p class="text-gray-500 text-sm">npm install @access-report-card/sdk</p>
                         </a>
                         <a href="#" class="block p-4 border rounded-lg hover:bg-gray-50">
                             <h4 class="font-semibold text-gray-900">Ruby</h4>
-                            <p class="text-gray-500 text-sm">gem install accessscan</p>
+                            <p class="text-gray-500 text-sm">gem install access-report-card</p>
                         </a>
                         <a href="#" class="block p-4 border rounded-lg hover:bg-gray-50">
                             <h4 class="font-semibold text-gray-900">PHP</h4>
-                            <p class="text-gray-500 text-sm">composer require accessscan/sdk</p>
+                            <p class="text-gray-500 text-sm">composer require access-report-card/sdk</p>
                         </a>
                     </div>
                 </section>

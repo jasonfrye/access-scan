@@ -7,7 +7,6 @@ use App\Services\StripeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Laravel\Cashier\Cashier;
 
 class BillingController extends Controller
 {
@@ -21,10 +20,17 @@ class BillingController extends Controller
     public function pricing()
     {
         $plans = Plan::where('is_active', true)->orderBy('price')->get();
-        
+        $user = Auth::user();
+        $upgradeCredit = 0;
+
+        if ($user && $user->plan === 'monthly') {
+            $upgradeCredit = 29; // Credit their most recent monthly payment
+        }
+
         return view('billing.pricing', [
             'plans' => $plans,
             'stripeKey' => config('cashier.key'),
+            'upgradeCredit' => $upgradeCredit,
         ]);
     }
 
@@ -34,11 +40,38 @@ class BillingController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
+        try {
+            $subscription = $user->subscription();
+        } catch (\Exception) {
+            $subscription = null;
+        }
+
+        try {
+            $invoices = $user->invoices();
+        } catch (\Exception) {
+            $invoices = collect();
+        }
+
+        $charges = collect();
+        if ($user->stripe_id) {
+            try {
+                $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+                $stripeCharges = $stripe->charges->all([
+                    'customer' => $user->stripe_id,
+                    'limit' => 20,
+                ]);
+                $charges = collect($stripeCharges->data)->filter(fn ($c) => $c->status === 'succeeded');
+            } catch (\Exception) {
+                // Stripe unavailable
+            }
+        }
+
         return view('billing.index', [
             'user' => $user,
-            'subscription' => $user->subscription(),
-            'invoices' => $user->invoices(),
+            'subscription' => $subscription,
+            'invoices' => $invoices,
+            'charges' => $charges,
         ]);
     }
 
@@ -66,14 +99,14 @@ class BillingController extends Controller
      */
     protected function handleSubscription($user, $plan)
     {
-        if (!$user->stripe_id) {
+        if (! $user->stripe_id) {
             $this->stripeService->createCustomer($user);
         }
 
         $checkoutUrl = $this->stripeService->createCheckoutSession(
             $user,
             $plan->stripe_price_id,
-            route('billing.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            route('billing.success').'?session_id={CHECKOUT_SESSION_ID}',
             route('billing.cancel')
         );
 
@@ -85,18 +118,21 @@ class BillingController extends Controller
      */
     protected function handleLifetimePurchase($user, $plan)
     {
-        $payment = $this->stripeService->createLifetimePayment(
+        if (! $user->stripe_id) {
+            $this->stripeService->createCustomer($user);
+        }
+
+        $discountAmount = $user->plan === 'monthly' ? 2900 : 0; // $29.00 in cents
+
+        $checkoutUrl = $this->stripeService->createLifetimeCheckoutSession(
             $user,
-            $plan->price * 100, // Convert to cents
-            $plan->stripe_product_id
+            $plan->stripe_lifetime_price_id ?? $plan->stripe_price_id,
+            route('billing.success').'?session_id={CHECKOUT_SESSION_ID}&plan=lifetime',
+            route('billing.cancel'),
+            $discountAmount
         );
 
-        // For lifetime, we'll handle via frontend or redirect to payment
-        return view('billing.lifetime-checkout', [
-            'clientSecret' => $payment['client_secret'],
-            'amount' => $plan->price,
-            'plan' => $plan,
-        ]);
+        return redirect($checkoutUrl);
     }
 
     /**
@@ -105,10 +141,50 @@ class BillingController extends Controller
     public function success(Request $request)
     {
         $sessionId = $request->get('session_id');
-        
-        Log::info('Subscription checkout success', [
-            'session_id' => $sessionId,
-        ]);
+        $user = Auth::user();
+
+        if ($sessionId) {
+            try {
+                $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+                $session = $stripe->checkout->sessions->retrieve($sessionId, [
+                    'expand' => ['subscription'],
+                ]);
+
+                // Handle lifetime one-time payment
+                if ($session->mode === 'payment' && $session->payment_status === 'paid') {
+                    $plan = Plan::where('slug', 'lifetime')->first();
+
+                    $user->update([
+                        'plan' => 'lifetime',
+                        'scan_limit' => $plan?->scan_limit ?? 1000,
+                    ]);
+
+                    Log::info('User upgraded to lifetime after checkout', [
+                        'user_id' => $user->id,
+                    ]);
+                }
+
+                // Handle subscription checkout
+                if ($session->subscription && $session->subscription->status === 'active') {
+                    $plan = Plan::where('stripe_price_id', $session->subscription->items->data[0]->price->id)->first();
+
+                    $user->update([
+                        'plan' => $plan?->slug ?? 'monthly',
+                        'scan_limit' => $plan?->scan_limit ?? 50,
+                    ]);
+
+                    Log::info('User plan updated after checkout', [
+                        'user_id' => $user->id,
+                        'plan' => $plan?->slug ?? 'monthly',
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to retrieve checkout session', [
+                    'session_id' => $sessionId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return redirect()->route('billing.index')
             ->with('success', 'Your subscription is now active!');
@@ -131,7 +207,7 @@ class BillingController extends Controller
         $user = Auth::user();
         $subscription = $user->subscription();
 
-        if (!$subscription) {
+        if (! $subscription) {
             return back()->with('error', 'No active subscription found.');
         }
 
@@ -150,7 +226,7 @@ class BillingController extends Controller
         $user = Auth::user();
         $subscription = $user->subscription();
 
-        if (!$subscription || $subscription->canceled()) {
+        if (! $subscription || $subscription->canceled()) {
             return back()->with('error', 'Cannot resume subscription.');
         }
 
@@ -168,7 +244,7 @@ class BillingController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->stripe_id) {
+        if (! $user->stripe_id) {
             return back()->with('error', 'No billing account found.');
         }
 
@@ -186,9 +262,9 @@ class BillingController extends Controller
     public function invoice(string $id)
     {
         $user = Auth::user();
-        
+
         return $user->downloadInvoice($id, [
-            'vendor' => 'AccessScan',
+            'vendor' => 'Access Report Card',
             'product' => 'Accessibility Scanning Service',
         ]);
     }
@@ -203,7 +279,7 @@ class BillingController extends Controller
 
         try {
             $eventType = $this->stripeService->handleWebhook($payload, $signature);
-            
+
             Log::info('Stripe webhook received', [
                 'event_type' => $eventType,
             ]);

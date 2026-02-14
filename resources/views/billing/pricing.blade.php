@@ -1,6 +1,6 @@
-@extends(auth()->check() ? 'layouts.app' : 'layouts.guest')
+@extends('layouts.guest')
 
-@section('title', 'Pricing - AccessScan')
+@section('title', 'Pricing - Access Report Card')
 
 @section('content')
 <div class="min-h-screen bg-gray-50 py-12">
@@ -18,7 +18,7 @@
             <!-- Free Plan -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
                 <h3 class="text-xl font-bold text-gray-900 mb-2">Free</h3>
-                <p class="text-gray-500 mb-6">Perfect for trying out AccessScan</p>
+                <p class="text-gray-500 mb-6">Perfect for trying out Access Report Card</p>
                 
                 <div class="mb-6">
                     <span class="text-4xl font-bold text-gray-900">$0</span>
@@ -105,10 +105,19 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
                 <h3 class="text-xl font-bold text-gray-900 mb-2">Lifetime</h3>
                 <p class="text-gray-500 mb-6">Pay once, scan forever</p>
-                
+
                 <div class="mb-6">
-                    <span class="text-4xl font-bold text-gray-900">$197</span>
-                    <span class="text-gray-500">/one-time</span>
+                    @if(isset($upgradeCredit) && $upgradeCredit > 0)
+                        <span class="text-4xl font-bold text-gray-900">${{ 197 - $upgradeCredit }}</span>
+                        <span class="text-gray-500">/one-time</span>
+                        <div class="mt-2">
+                            <span class="text-sm text-gray-400 line-through">${{ 197 }}</span>
+                            <span class="inline-block ml-2 text-sm font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">${{ $upgradeCredit }} monthly credit applied</span>
+                        </div>
+                    @else
+                        <span class="text-4xl font-bold text-gray-900">$197</span>
+                        <span class="text-gray-500">/one-time</span>
+                    @endif
                 </div>
 
                 <ul class="space-y-4 mb-8">

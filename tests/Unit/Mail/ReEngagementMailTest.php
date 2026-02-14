@@ -2,9 +2,9 @@
 
 namespace Tests\Unit\Mail;
 
-use Tests\TestCase;
 use App\Mail\ReEngagementMail;
 use App\Models\User;
+use Tests\TestCase;
 
 class ReEngagementMailTest extends TestCase
 {
@@ -13,8 +13,9 @@ class ReEngagementMailTest extends TestCase
      */
     protected function createUser(array $attributes): User
     {
-        $user = new User();
+        $user = new User;
         $user->forceFill($attributes);
+
         return $user;
     }
 
@@ -44,7 +45,7 @@ class ReEngagementMailTest extends TestCase
         $envelope = $mail->envelope();
 
         $this->assertStringContainsString('miss', strtolower($envelope->subject));
-        $this->assertStringContainsString('AccessScan', $envelope->subject);
+        $this->assertStringContainsString('Access Report Card', $envelope->subject);
     }
 
     /** @test */

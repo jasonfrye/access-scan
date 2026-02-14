@@ -65,7 +65,7 @@
     <div class="py-20 bg-white">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">How AccessScan Works</h2>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">How Access Report Card Works</h2>
                 <p class="text-xl text-gray-600">Three simple steps to accessibility compliance</p>
             </div>
 

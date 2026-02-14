@@ -118,6 +118,7 @@ class DashboardController extends Controller
     {
         $request->validate([
             'url' => 'required|url|max:2048',
+            'scan_type' => 'sometimes|in:full,single',
         ]);
 
         $user = Auth::user();
@@ -129,6 +130,9 @@ class DashboardController extends Controller
         }
 
         $url = $request->input('url');
+        $scanType = $request->input('scan_type', 'full') === 'single'
+            ? Scan::TYPE_QUICK
+            : Scan::TYPE_FULL;
 
         try {
             // Create scan record
@@ -136,7 +140,7 @@ class DashboardController extends Controller
                 'user_id' => $user->id,
                 'url' => $url,
                 'status' => Scan::STATUS_PENDING,
-                'scan_type' => Scan::TYPE_FULL,
+                'scan_type' => $scanType,
             ]);
 
             // Increment user's scan count
@@ -151,8 +155,8 @@ class DashboardController extends Controller
                 'url' => $url,
             ]);
 
-            return redirect()->route('scan.pending', $scan)
-                ->with('success', 'Scan started! You\'ll be notified when it\'s complete.');
+            return redirect()->route('dashboard.scan', $scan)
+                ->with('success', 'Scan started! Results will appear shortly.');
         } catch (\Exception $e) {
             Log::error('Failed to initiate dashboard scan', [
                 'user_id' => $user->id,
@@ -172,7 +176,7 @@ class DashboardController extends Controller
     {
         $this->authorize('view', $scan);
 
-        $scan->load(['pages']);
+        $scan->load(['pages.issues']);
 
         $pages = $scan->pages->sortBy('score');
 
@@ -193,6 +197,50 @@ class DashboardController extends Controller
         $categories = IssueCategory::groupByCategory($scanPage->issues);
 
         return view('dashboard.scan-page', compact('scan', 'scanPage', 'categories'));
+    }
+
+    /**
+     * Retry a failed or stuck scan.
+     */
+    public function retryScan(Request $request, Scan $scan)
+    {
+        $this->authorize('view', $scan);
+
+        if (! in_array($scan->status, [Scan::STATUS_FAILED, Scan::STATUS_PENDING])) {
+            return redirect()->route('dashboard.scan', $scan)
+                ->with('error', 'This scan cannot be retried.');
+        }
+
+        // Reset scan state
+        $scan->update([
+            'status' => Scan::STATUS_PENDING,
+            'error_message' => null,
+            'score' => null,
+            'grade' => null,
+            'pages_scanned' => 0,
+            'issues_found' => 0,
+            'errors_count' => 0,
+            'warnings_count' => 0,
+            'notices_count' => 0,
+            'started_at' => null,
+            'completed_at' => null,
+        ]);
+
+        // Delete old pages/issues
+        $scan->pages()->each(function ($page) {
+            $page->issues()->delete();
+            $page->delete();
+        });
+
+        dispatch(new RunScanJob($scan));
+
+        Log::info('Scan retry initiated', [
+            'scan_id' => $scan->id,
+            'user_id' => Auth::id(),
+        ]);
+
+        return redirect()->route('dashboard.scan', $scan)
+            ->with('success', 'Scan restarted! Results will appear shortly.');
     }
 
     /**

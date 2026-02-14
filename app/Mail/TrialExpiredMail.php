@@ -21,7 +21,7 @@ class TrialExpiredMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your AccessScan trial has expired',
+            subject: 'Your Access Report Card trial has expired',
         );
     }
 

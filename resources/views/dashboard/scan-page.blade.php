@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@section('title', ($scanPage->path === '/' ? 'Homepage' : $scanPage->path) . ' - Scan Results - AccessScan')
+@section('title', ($scanPage->path === '/' ? 'Homepage' : $scanPage->path) . ' - Scan Results - Access Report Card')
 
 @section('content')
 <div class="min-h-screen bg-gray-50">
@@ -40,6 +40,43 @@
                 <div class="text-sm text-gray-500">Notices</div>
             </div>
         </div>
+
+        <!-- Copy as Markdown -->
+        @if($scanPage->issues->count() > 0)
+            <div class="mb-8 flex justify-end" x-data="{ copied: false }">
+                <button
+                    @click="
+                        let md = `# {{ $scanPage->path === '/' ? 'Homepage' : $scanPage->path }} — Accessibility Issues\n`;
+                        md += `**URL:** {{ $scanPage->url }}\n`;
+                        md += `**Score:** {{ number_format($scanPage->score ?? 0, 0) }}/100\n`;
+                        md += `**Errors:** {{ $scanPage->errors_count }} | **Warnings:** {{ $scanPage->warnings_count }} | **Notices:** {{ $scanPage->notices_count }}\n\n`;
+                        md += `| Type | Code | Message |\n`;
+                        md += `|------|------|---------|\n`;
+                        @foreach($scanPage->issues as $issue)
+                        md += `| {{ $issue->type }} | \`{{ $issue->code }}\` | {{ str_replace(['|', '`', '\n', '\r'], ['\|', '', ' ', ''], $issue->message) }} |\n`;
+                        @endforeach
+                        navigator.clipboard.writeText(md);
+                        copied = true;
+                        setTimeout(() => copied = false, 2000);
+                    "
+                    class="py-2 px-4 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                    :class="copied && 'border-green-300 text-green-700 bg-green-50'"
+                >
+                    <template x-if="!copied">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                            Copy Issues as Markdown
+                        </span>
+                    </template>
+                    <template x-if="copied">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            Copied!
+                        </span>
+                    </template>
+                </button>
+            </div>
+        @endif
 
         <!-- Categorized Issues -->
         <div class="space-y-4">

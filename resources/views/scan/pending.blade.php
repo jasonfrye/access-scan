@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@section('title', 'Scanning... - AccessScan')
+@section('title', 'Scanning... - Access Report Card')
 
 @section('content')
 <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">

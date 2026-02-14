@@ -1,6 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.guest')
 
-@section('title', 'Scan Results - ' . $scan->domain . ' - AccessScan')
+@section('title', 'Scan Results - ' . $scan->domain . ' - Access Report Card')
 
 @section('content')
 <div class="min-h-screen bg-gray-50">
