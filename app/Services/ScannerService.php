@@ -79,16 +79,18 @@ class ScannerService
             $totalWarnings = 0;
             $totalNotices = 0;
             $totalIssues = 0;
+            $scoreSum = 0;
 
             foreach ($pages as $page) {
                 $totalErrors += $page['errors_count'];
                 $totalWarnings += $page['warnings_count'];
                 $totalNotices += $page['notices_count'];
                 $totalIssues += $page['issues_count'];
+                $scoreSum += $page['score'];
             }
 
-            // Calculate score (simple formula: 100 - weighted errors)
-            $score = $this->calculateScore($totalErrors, $totalWarnings, $totalNotices);
+            // Overall score is the average of per-page scores
+            $score = count($pages) > 0 ? round($scoreSum / count($pages), 2) : 100;
 
             // Update scan with results
             $scan->markAsCompleted([
