@@ -131,6 +131,13 @@
                                                 <div class="text-xs text-gray-400 mt-1">{{ $latestScan->issues_found }} {{ Str::plural('issue', $latestScan->issues_found) }}</div>
                                             </div>
                                         </a>
+                                        <form action="{{ route('dashboard.scan.store') }}" method="POST" @click.stop>
+                                            @csrf
+                                            <input type="hidden" name="url" value="{{ $latestScan->url }}">
+                                            <button type="submit" class="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Re-scan {{ $domain }}">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                            </button>
+                                        </form>
                                         @include('dashboard._schedule-icon', ['domain' => $domain, 'latestScan' => $latestScan])
                                     </div>
                                 @else
@@ -168,6 +175,13 @@
                                                     </svg>
                                                 </div>
                                             </button>
+                                            <form action="{{ route('dashboard.scan.store') }}" method="POST" @click.stop>
+                                                @csrf
+                                                <input type="hidden" name="url" value="{{ $latestScan->url }}">
+                                                <button type="submit" class="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Re-scan {{ $domain }}">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                                </button>
+                                            </form>
                                             @include('dashboard._schedule-icon', ['domain' => $domain, 'latestScan' => $latestScan])
                                         </div>
 
