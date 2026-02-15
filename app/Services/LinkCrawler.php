@@ -108,10 +108,11 @@ class LinkCrawler
         $this->checkRobotsTxt();
 
         // Add the starting URL to the queue
+        $normalizedUrl = $this->normalizeUrl($url);
         $this->queue = [
-            ['url' => $url, 'depth' => 0],
+            ['url' => $normalizedUrl, 'depth' => 0],
         ];
-        $this->queuedUrls = [$url => true];
+        $this->queuedUrls = [$normalizedUrl => true];
 
         // Process the queue
         $this->processQueue();
@@ -149,7 +150,7 @@ class LinkCrawler
 
         while (! empty($this->queue) && count($this->internalUrls) < $this->maxPages) {
             $item = array_shift($this->queue);
-            $url = $item['url'];
+            $url = $this->normalizeUrl($item['url']);
             $depth = $item['depth'];
 
             // Skip if already processed
@@ -208,9 +209,10 @@ class LinkCrawler
                 $html = (string) $response->getBody();
 
                 // Add to internal URLs if we haven't seen it and haven't exceeded limit
-                if (! isset($this->internalUrls[$url]) && count($this->internalUrls) < $this->maxPages) {
-                    $this->internalUrls[$url] = [
-                        'url' => $url,
+                $normalizedUrl = $this->normalizeUrl($url);
+                if (! isset($this->internalUrls[$normalizedUrl]) && count($this->internalUrls) < $this->maxPages) {
+                    $this->internalUrls[$normalizedUrl] = [
+                        'url' => $normalizedUrl,
                         'status' => $status,
                         'title' => $this->extractTitle($html),
                     ];
@@ -225,15 +227,16 @@ class LinkCrawler
                             break;
                         }
 
-                        if (! isset($this->processed[$link]) && ! isset($this->queuedUrls[$link])) {
-                            if ($this->isInternalLink($link)) {
+                        $normalizedLink = $this->normalizeUrl($link);
+                        if (! isset($this->processed[$normalizedLink]) && ! isset($this->queuedUrls[$normalizedLink])) {
+                            if ($this->isInternalLink($normalizedLink)) {
                                 $this->queue[] = [
-                                    'url' => $link,
+                                    'url' => $normalizedLink,
                                     'depth' => $depth + 1,
                                 ];
-                                $this->queuedUrls[$link] = true;
-                            } elseif (! isset($this->externalUrls[$link])) {
-                                $this->externalUrls[$link] = $link;
+                                $this->queuedUrls[$normalizedLink] = true;
+                            } elseif (! isset($this->externalUrls[$normalizedLink])) {
+                                $this->externalUrls[$normalizedLink] = $normalizedLink;
                             }
                         }
                     }
@@ -487,6 +490,32 @@ class LinkCrawler
         $baseDir = rtrim(substr($basePath, 0, (int) strrpos($basePath, '/')), '/');
 
         return strtok($scheme.'://'.$host.$baseDir.'/'.$href, '#');
+    }
+
+    /**
+     * Normalize a URL to prevent duplicates (trailing slashes, fragments, etc.).
+     */
+    protected function normalizeUrl(string $url): string
+    {
+        // Strip fragments
+        $url = strtok($url, '#');
+
+        // Strip trailing slash unless it's just the root path
+        $parsed = parse_url($url);
+        $path = $parsed['path'] ?? '/';
+
+        if ($path !== '/' && str_ends_with($path, '/')) {
+            $path = rtrim($path, '/');
+        }
+
+        $normalized = ($parsed['scheme'] ?? 'https').'://'.($parsed['host'] ?? '');
+        $normalized .= $path;
+
+        if (! empty($parsed['query'])) {
+            $normalized .= '?'.$parsed['query'];
+        }
+
+        return $normalized;
     }
 
     /**
