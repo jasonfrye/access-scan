@@ -76,8 +76,10 @@ class RunScanJob implements ShouldBeUnique, ShouldQueue
 
             Log::info('Scan job completed successfully', ['scan_id' => $this->scan->id]);
 
-            // Send scan complete notification
-            $notifications->sendScanCompleteNotification($this->scan);
+            // Send scan complete notification only if pages were actually scanned
+            if ($this->scan->pages_scanned > 0) {
+                $notifications->sendScanCompleteNotification($this->scan);
+            }
 
             // Check for regression on scheduled scans
             if ($this->scan->user && $this->scan->scan_type === Scan::TYPE_SCHEDULED) {
