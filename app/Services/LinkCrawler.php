@@ -216,23 +216,24 @@ class LinkCrawler
                     ];
                 }
 
-                // Extract links if we haven't reached max depth
-                if ($depth < $this->maxDepth) {
+                // Extract links if we haven't reached max depth or page limit
+                if ($depth < $this->maxDepth && count($this->internalUrls) < $this->maxPages) {
                     $links = $this->extractLinks($html, $url);
 
                     foreach ($links as $link) {
+                        if (count($this->queuedUrls) >= $this->maxPages) {
+                            break;
+                        }
+
                         if (! isset($this->processed[$link]) && ! isset($this->queuedUrls[$link])) {
-                            // Only add internal links within max depth and page limit
-                            if ($this->isInternalLink($link) && count($this->internalUrls) < $this->maxPages) {
+                            if ($this->isInternalLink($link)) {
                                 $this->queue[] = [
                                     'url' => $link,
                                     'depth' => $depth + 1,
                                 ];
                                 $this->queuedUrls[$link] = true;
-                            } elseif (! $this->isInternalLink($link)) {
-                                if (! isset($this->externalUrls[$link])) {
-                                    $this->externalUrls[$link] = $link;
-                                }
+                            } elseif (! isset($this->externalUrls[$link])) {
+                                $this->externalUrls[$link] = $link;
                             }
                         }
                     }
