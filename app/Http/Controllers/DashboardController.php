@@ -31,8 +31,8 @@ class DashboardController extends Controller
             'total_scans' => $user->scans()->count(),
             'completed_scans' => $user->scans()->completed()->count(),
             'average_score' => $user->scans()->completed()->avg('score'),
-            'scan_limit' => $user->scan_limit,
-            'scans_remaining' => max(0, $user->scan_limit - $user->scan_count),
+            'scan_limit' => $user->getScanLimit(),
+            'scans_remaining' => max(0, $user->getScanLimit() - $user->scan_count),
         ];
 
         $recentScans = $user->scans()
