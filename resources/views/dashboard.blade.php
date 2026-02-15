@@ -83,16 +83,16 @@
             </div>
         </div>
 
-        <div class="grid lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Main Content: Scan History -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-2xl shadow-sm border-2 border-gray-100">
-                    <div class="p-6 border-b-2 border-gray-100 flex items-center justify-between">
+            <div class="lg:col-span-2 min-w-0">
+                <div class="bg-white rounded-2xl shadow-sm border-2 border-gray-100 overflow-hidden">
+                    <div class="p-4 sm:p-6 border-b-2 border-gray-100 flex items-center justify-between gap-3">
                         <div>
                             <h2 class="text-2xl font-bold text-gray-900">Scan History</h2>
                             <p class="text-sm text-gray-500 mt-1">Your recent accessibility scans</p>
                         </div>
-                        <button x-data @click="$dispatch('open-modal', 'new-scan')" class="px-5 py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-all hover:scale-105">
+                        <button x-data @click="$dispatch('open-modal', 'new-scan')" class="px-3 py-2 sm:px-5 sm:py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-all hover:scale-105 flex-shrink-0">
                             + New Scan
                         </button>
                     </div>
@@ -104,34 +104,34 @@
 
                                 @if($domainScans->count() === 1)
                                     {{-- Single scan — link directly to report --}}
-                                    <div class="flex items-center p-6 hover:bg-blue-50/30 transition-all group gap-3">
-                                        <a href="{{ route('dashboard.scan', $latestScan) }}" class="flex items-center justify-between gap-6 flex-1 min-w-0">
-                                            <div class="flex items-center gap-5">
+                                    <div class="flex items-center p-4 sm:p-6 hover:bg-blue-50/30 transition-all group gap-2 sm:gap-3">
+                                        <a href="{{ route('dashboard.scan', $latestScan) }}" class="flex items-center justify-between gap-3 sm:gap-6 flex-1 min-w-0">
+                                            <div class="flex items-center gap-3 sm:gap-5 min-w-0">
                                                 <div class="relative flex-shrink-0">
-                                                    <div class="w-16 h-20 rounded-lg flex flex-col items-center justify-center font-bold shadow-md {{ $latestScan->grade === 'A' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : ($latestScan->grade === 'B' ? 'bg-gradient-to-br from-green-400 to-green-500 text-white' : ($latestScan->grade === 'C' ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white' : ($latestScan->grade === 'D' ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'))) }}">
-                                                        <div class="text-3xl">{{ $latestScan->grade ?? '?' }}</div>
+                                                    <div class="w-12 h-16 sm:w-16 sm:h-20 rounded-lg flex flex-col items-center justify-center font-bold shadow-md {{ $latestScan->grade === 'A' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : ($latestScan->grade === 'B' ? 'bg-gradient-to-br from-green-400 to-green-500 text-white' : ($latestScan->grade === 'C' ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white' : ($latestScan->grade === 'D' ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'))) }}">
+                                                        <div class="text-2xl sm:text-3xl">{{ $latestScan->grade ?? '?' }}</div>
                                                         <div class="text-xs font-normal opacity-90">GRADE</div>
                                                     </div>
                                                 </div>
                                                 <div class="flex-1 min-w-0">
-                                                    <span class="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-lg group-hover:underline">{{ $domain }}</span>
-                                                    <div class="flex items-center gap-3 mt-2">
+                                                    <span class="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors text-base sm:text-lg group-hover:underline truncate block">{{ $domain }}</span>
+                                                    <div class="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-2 flex-wrap">
                                                         <span class="text-xs text-gray-400 flex items-center gap-1">
-                                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                                                            <svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
                                                             {{ $latestScan->completed_at?->diffForHumans() ?? $latestScan->created_at->diffForHumans() }}
                                                         </span>
-                                                        <span class="text-xs text-gray-400">•</span>
-                                                        <span class="text-xs text-gray-400">{{ $latestScan->pages_scanned }} pages</span>
+                                                        <span class="text-xs text-gray-400 hidden sm:inline">•</span>
+                                                        <span class="text-xs text-gray-400 hidden sm:inline">{{ $latestScan->pages_scanned }} pages</span>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="text-right flex-shrink-0">
-                                                <div class="text-3xl font-bold text-gray-900">{{ number_format($latestScan->score, 0) }}</div>
-                                                <div class="text-sm text-gray-500 font-medium">/100</div>
-                                                <div class="text-xs text-gray-400 mt-1">{{ $latestScan->issues_found }} {{ Str::plural('issue', $latestScan->issues_found) }}</div>
+                                                <div class="text-2xl sm:text-3xl font-bold text-gray-900">{{ number_format($latestScan->score, 0) }}</div>
+                                                <div class="text-xs sm:text-sm text-gray-500 font-medium">/100</div>
+                                                <div class="text-xs text-gray-400 mt-1 hidden sm:block">{{ $latestScan->issues_found }} {{ Str::plural('issue', $latestScan->issues_found) }}</div>
                                             </div>
                                         </a>
-                                        <form action="{{ route('dashboard.scan.store') }}" method="POST" @click.stop>
+                                        <form action="{{ route('dashboard.scan.store') }}" method="POST" @click.stop class="hidden sm:block">
                                             @csrf
                                             <input type="hidden" name="url" value="{{ $latestScan->url }}">
                                             <button type="submit" class="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Re-scan {{ $domain }}">
@@ -143,39 +143,39 @@
                                 @else
                                     {{-- Multiple scans — accordion --}}
                                     <div x-data="{ open: false }" class="transition-all">
-                                        <div class="flex items-center p-6 hover:bg-blue-50/30 transition-all gap-3">
-                                            <button @click="open = !open" class="flex items-center justify-between gap-6 flex-1 min-w-0 text-left">
-                                                <div class="flex items-center gap-5">
+                                        <div class="flex items-center p-4 sm:p-6 hover:bg-blue-50/30 transition-all gap-2 sm:gap-3">
+                                            <button @click="open = !open" class="flex items-center justify-between gap-3 sm:gap-6 flex-1 min-w-0 text-left">
+                                                <div class="flex items-center gap-3 sm:gap-5 min-w-0">
                                                     <div class="relative flex-shrink-0">
-                                                        <div class="w-16 h-20 rounded-lg flex flex-col items-center justify-center font-bold shadow-md {{ $latestScan->grade === 'A' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : ($latestScan->grade === 'B' ? 'bg-gradient-to-br from-green-400 to-green-500 text-white' : ($latestScan->grade === 'C' ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white' : ($latestScan->grade === 'D' ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'))) }}">
-                                                            <div class="text-3xl">{{ $latestScan->grade ?? '?' }}</div>
+                                                        <div class="w-12 h-16 sm:w-16 sm:h-20 rounded-lg flex flex-col items-center justify-center font-bold shadow-md {{ $latestScan->grade === 'A' ? 'bg-gradient-to-br from-green-500 to-green-600 text-white' : ($latestScan->grade === 'B' ? 'bg-gradient-to-br from-green-400 to-green-500 text-white' : ($latestScan->grade === 'C' ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white' : ($latestScan->grade === 'D' ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-white' : 'bg-gradient-to-br from-red-500 to-red-600 text-white'))) }}">
+                                                            <div class="text-2xl sm:text-3xl">{{ $latestScan->grade ?? '?' }}</div>
                                                             <div class="text-xs font-normal opacity-90">GRADE</div>
                                                         </div>
                                                     </div>
                                                     <div class="flex-1 min-w-0">
-                                                        <div class="flex items-center gap-3">
-                                                            <span class="font-semibold text-gray-900 text-lg">{{ $domain }}</span>
-                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{{ $domainScans->count() }} scans</span>
+                                                        <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                                            <span class="font-semibold text-gray-900 text-base sm:text-lg truncate">{{ $domain }}</span>
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 flex-shrink-0">{{ $domainScans->count() }} scans</span>
                                                         </div>
-                                                        <div class="flex items-center gap-3 mt-2">
+                                                        <div class="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-2">
                                                             <span class="text-xs text-gray-400 flex items-center gap-1">
-                                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
-                                                                Latest: {{ $latestScan->completed_at?->diffForHumans() ?? $latestScan->created_at->diffForHumans() }}
+                                                                <svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                                                                {{ $latestScan->completed_at?->diffForHumans() ?? $latestScan->created_at->diffForHumans() }}
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="flex items-center gap-4">
+                                                <div class="flex items-center gap-2 sm:gap-4">
                                                     <div class="text-right flex-shrink-0">
-                                                        <div class="text-3xl font-bold text-gray-900">{{ number_format($latestScan->score, 0) }}</div>
-                                                        <div class="text-sm text-gray-500 font-medium">/100</div>
+                                                        <div class="text-2xl sm:text-3xl font-bold text-gray-900">{{ number_format($latestScan->score, 0) }}</div>
+                                                        <div class="text-xs sm:text-sm text-gray-500 font-medium">/100</div>
                                                     </div>
-                                                    <svg class="w-5 h-5 text-gray-400 transition-transform" :class="open && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg class="w-5 h-5 text-gray-400 transition-transform flex-shrink-0" :class="open && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                                     </svg>
                                                 </div>
                                             </button>
-                                            <form action="{{ route('dashboard.scan.store') }}" method="POST" @click.stop>
+                                            <form action="{{ route('dashboard.scan.store') }}" method="POST" @click.stop class="hidden sm:block">
                                                 @csrf
                                                 <input type="hidden" name="url" value="{{ $latestScan->url }}">
                                                 <button type="submit" class="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Re-scan {{ $domain }}">
@@ -186,7 +186,7 @@
                                         </div>
 
                                         <div x-show="open" x-collapse>
-                                            <div class="px-6 pb-4 space-y-2 ml-20">
+                                            <div class="px-4 sm:px-6 pb-4 space-y-2 ml-0 sm:ml-20">
                                                 @foreach($domainScans as $scan)
                                                     <a href="{{ route('dashboard.scan', $scan) }}" class="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors group/scan">
                                                         <div class="flex items-center gap-3">
