@@ -28,8 +28,8 @@ class ScannerServiceTest extends TestCase
     {
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [0, 0, 10]);
 
-        // 10 notices * 0.25 = 2.5 weighted, 100 * e^(-0.013 * 2.5) = ~96.80
-        $this->assertEqualsWithDelta(96.80, $score, 0.5);
+        // 10 notices * 0.5 = 5 weighted, 100 * e^(-0.003 * 5) = ~98.51
+        $this->assertEqualsWithDelta(98.51, $score, 0.5);
     }
 
     /** @test */
@@ -37,8 +37,8 @@ class ScannerServiceTest extends TestCase
     {
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [0, 5, 0]);
 
-        // 5 warnings * 1 = 5 weighted, 100 * e^(-0.013 * 5) = ~93.70
-        $this->assertEqualsWithDelta(93.70, $score, 0.5);
+        // 5 warnings * 3 = 15 weighted, 100 * e^(-0.003 * 15) = ~95.60
+        $this->assertEqualsWithDelta(95.60, $score, 0.5);
     }
 
     /** @test */
@@ -46,8 +46,8 @@ class ScannerServiceTest extends TestCase
     {
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [3, 0, 0]);
 
-        // 3 errors * 2 = 6 weighted, 100 * e^(-0.013 * 6) = ~92.49
-        $this->assertEqualsWithDelta(92.49, $score, 0.5);
+        // 3 errors * 10 = 30 weighted, 100 * e^(-0.003 * 30) = ~91.39
+        $this->assertEqualsWithDelta(91.39, $score, 0.5);
     }
 
     /** @test */
@@ -55,9 +55,9 @@ class ScannerServiceTest extends TestCase
     {
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [2, 3, 5]);
 
-        // (2*2) + (3*1) + (5*0.25) = 4 + 3 + 1.25 = 8.25 weighted
-        // 100 * e^(-0.013 * 8.25) = ~89.83
-        $this->assertEqualsWithDelta(89.83, $score, 0.5);
+        // (2*10) + (3*3) + (5*0.5) = 20 + 9 + 2.5 = 31.5 weighted
+        // 100 * e^(-0.003 * 31.5) = ~90.98
+        $this->assertEqualsWithDelta(90.98, $score, 0.5);
     }
 
     /** @test */
@@ -79,14 +79,14 @@ class ScannerServiceTest extends TestCase
     /** @test */
     public function it_produces_realistic_scores_for_typical_sites()
     {
-        // A mediocre site: 25 errors (Pa11y reports most as errors)
-        // (25*2) = 50 weighted, 100 * e^(-0.013 * 50) = ~52.2
+        // A mediocre site: 25 errors
+        // (25*10) = 250 weighted, 100 * e^(-0.003 * 250) = ~47.24
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [25, 0, 0]);
-        $this->assertGreaterThan(45, $score);
-        $this->assertLessThan(60, $score);
+        $this->assertGreaterThan(40, $score);
+        $this->assertLessThan(55, $score);
 
         // A decent site: 5 errors
-        // (5*2) = 10 weighted, 100 * e^(-0.013 * 10) = ~87.8
+        // (5*10) = 50 weighted, 100 * e^(-0.003 * 50) = ~86.07
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [5, 0, 0]);
         $this->assertGreaterThan(80, $score);
         $this->assertLessThan(95, $score);

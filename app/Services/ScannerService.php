@@ -372,14 +372,14 @@ class ScannerService
      */
     protected function calculateScore(int $errors, int $warnings, int $notices): float
     {
-        $weightedIssues = ($errors * 2) + ($warnings * 1) + ($notices * 0.25);
+        $weightedIssues = ($errors * 10) + ($warnings * 3) + ($notices * 0.5);
 
         if ($weightedIssues <= 0) {
             return 100.0;
         }
 
-        // k = 0.013 produces a gentler curve suited for Pa11y's error-heavy output
-        $score = 100 * exp(-0.013 * $weightedIssues);
+        // Errors dominate the score; warnings have moderate impact; notices are minor
+        $score = 100 * exp(-0.003 * $weightedIssues);
 
         return max(0, min(100, round($score, 2)));
     }
