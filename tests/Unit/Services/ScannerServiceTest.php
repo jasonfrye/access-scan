@@ -28,8 +28,8 @@ class ScannerServiceTest extends TestCase
     {
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [0, 0, 10]);
 
-        // 10 notices * 0.5 = 5 weighted, 100 * e^(-0.003 * 5) = ~98.51
-        $this->assertEqualsWithDelta(98.51, $score, 0.5);
+        // Notices don't impact score
+        $this->assertEquals(100, $score);
     }
 
     /** @test */
@@ -55,9 +55,9 @@ class ScannerServiceTest extends TestCase
     {
         $score = $this->invokeProtectedMethod($this->service, 'calculateScore', [2, 3, 5]);
 
-        // (2*10) + (3*3) + (5*0.5) = 20 + 9 + 2.5 = 31.5 weighted
-        // 100 * e^(-0.003 * 31.5) = ~90.98
-        $this->assertEqualsWithDelta(90.98, $score, 0.5);
+        // (2*10) + (3*3) = 20 + 9 = 29 weighted (notices excluded)
+        // 100 * e^(-0.003 * 29) = ~91.66
+        $this->assertEqualsWithDelta(91.66, $score, 0.5);
     }
 
     /** @test */

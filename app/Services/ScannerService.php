@@ -372,7 +372,7 @@ class ScannerService
      */
     protected function calculateScore(int $errors, int $warnings, int $notices): float
     {
-        $weightedIssues = ($errors * 10) + ($warnings * 3) + ($notices * 0.5);
+        $weightedIssues = ($errors * 10) + ($warnings * 3);
 
         if ($weightedIssues <= 0) {
             return 100.0;
