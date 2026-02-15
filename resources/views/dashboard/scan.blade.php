@@ -361,41 +361,48 @@
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
                                     Export JSON
                                 </a>
-                                <div x-data="{ copied: false }">
+                                <div x-data="{ copied: false, loading: false }">
                                     <button
                                         @click="
-                                            let md = `# Accessibility Report: {{ $scan->domain }}\n`;
-                                            md += `**URL:** {{ $scan->url }}\n`;
-                                            md += `**Score:** {{ number_format($scan->score, 0) }}/100 ({{ $scan->grade }})\n`;
-                                            md += `**Errors:** {{ $scan->errors_count }} | **Warnings:** {{ $scan->warnings_count }} | **Notices:** {{ $scan->notices_count }}\n\n`;
-                                            @foreach($pages as $page)
-                                            md += `## {{ $page->path }} (Score: {{ number_format($page->score ?? 0, 0) }})\n\n`;
-                                            @if($page->issues->count() > 0)
-                                            @foreach($page->issues as $issue)
-                                            md += `### {{ ucfirst($issue->type) }}: \`{{ $issue->code }}\`\n`;
-                                            md += `{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->message) }}\n\n`;
-                                            @if($issue->selector)
-                                            md += `**Selector:** \`{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->selector) }}\`\n\n`;
-                                            @endif
-                                            @if($issue->context)
-                                            md += `**HTML:**\n\`\`\`html\n{{ str_replace(['`', '\n', '\r'], ['', ' ', ''], $issue->context) }}\n\`\`\`\n\n`;
-                                            @endif
-                                            @endforeach
-                                            @else
-                                            md += `No issues found.\n\n`;
-                                            @endif
-                                            @endforeach
-                                            navigator.clipboard.writeText(md);
-                                            copied = true;
-                                            setTimeout(() => copied = false, 2000);
+                                            if (loading) return;
+                                            loading = true;
+                                            fetch('{{ route('report.json', $scan) }}')
+                                                .then(r => r.json())
+                                                .then(data => {
+                                                    let md = `# Accessibility Report: ${data.scan.domain}\n`;
+                                                    md += `**URL:** ${data.scan.url}\n`;
+                                                    md += `**Score:** ${data.scan.score}/100 (${data.scan.grade})\n\n`;
+                                                    data.pages.forEach(page => {
+                                                        md += `## ${page.url} (Score: ${page.score})\n\n`;
+                                                        if (page.issues.length > 0) {
+                                                            page.issues.forEach(issue => {
+                                                                md += `### ${issue.type}: ${issue.wcag_reference}\n`;
+                                                                md += `${issue.message}\n\n`;
+                                                            });
+                                                        } else {
+                                                            md += `No issues found.\n\n`;
+                                                        }
+                                                    });
+                                                    navigator.clipboard.writeText(md);
+                                                    copied = true;
+                                                    loading = false;
+                                                    setTimeout(() => copied = false, 2000);
+                                                })
+                                                .catch(() => { loading = false; });
                                         "
                                         class="w-full py-3 px-4 border border-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
                                         :class="copied && 'border-green-300 text-green-700 bg-green-50'"
                                     >
-                                        <template x-if="!copied">
+                                        <template x-if="!copied && !loading">
                                             <span class="flex items-center gap-2">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
                                                 Copy as Markdown
+                                            </span>
+                                        </template>
+                                        <template x-if="loading">
+                                            <span class="flex items-center gap-2">
+                                                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                Loading...
                                             </span>
                                         </template>
                                         <template x-if="copied">

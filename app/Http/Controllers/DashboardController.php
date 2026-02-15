@@ -181,7 +181,7 @@ class DashboardController extends Controller
     {
         $this->authorize('view', $scan);
 
-        $scan->load(['pages.issues']);
+        $scan->load('pages');
 
         $pages = $scan->pages->sortBy('score');
 
