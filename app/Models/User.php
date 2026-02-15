@@ -31,6 +31,7 @@ class User extends Authenticatable
         'scan_count',
         'scan_limit',
         'trial_ends_at',
+        'trial_reminder_sent_at',
         'marketing_emails_enabled',
         'system_emails_enabled',
         'company_name',
@@ -60,6 +61,7 @@ class User extends Authenticatable
             'scan_count' => 'integer',
             'scan_limit' => 'integer',
             'trial_ends_at' => 'datetime',
+            'trial_reminder_sent_at' => 'datetime',
             'marketing_emails_enabled' => 'boolean',
             'system_emails_enabled' => 'boolean',
         ];
