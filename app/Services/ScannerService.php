@@ -277,16 +277,22 @@ class ScannerService
     {
         $npxPath = config('services.pa11y.npx_path', '/usr/local/bin/npx');
 
-        $chromeLaunchConfig = json_encode([
-            'args' => ['--no-sandbox', '--disable-setuid-sandbox'],
-        ]);
+        $configPath = storage_path('app/pa11y-config.json');
+
+        if (! file_exists($configPath)) {
+            file_put_contents($configPath, json_encode([
+                'chromeLaunchConfig' => [
+                    'args' => ['--no-sandbox', '--disable-setuid-sandbox'],
+                ],
+            ]));
+        }
 
         return sprintf(
-            '%s pa11y %s --standard WCAG2AA --reporter json --timeout %d --launch-config %s',
+            '%s pa11y %s --standard WCAG2AA --reporter json --timeout %d --config %s',
             escapeshellarg($npxPath),
             escapeshellarg($url),
             $this->timeout * 1000, // Convert to milliseconds
-            escapeshellarg($chromeLaunchConfig)
+            escapeshellarg($configPath)
         );
     }
 
