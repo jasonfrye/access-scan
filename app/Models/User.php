@@ -136,11 +136,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the number of scans used this month.
+     */
+    public function getMonthlyScansUsed(): int
+    {
+        return $this->scans()
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+    }
+
+    /**
      * Check if user has remaining scans.
      */
     public function hasScansRemaining(): bool
     {
-        return $this->scan_count < $this->getScanLimit();
+        return $this->getMonthlyScansUsed() < $this->getScanLimit();
     }
 
     /**
