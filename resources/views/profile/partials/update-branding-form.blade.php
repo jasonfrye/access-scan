@@ -23,7 +23,7 @@
             <x-input-label for="company_logo" :value="__('Company Logo')" />
             @if ($user->company_logo_path)
                 <div class="mt-2 mb-3 flex items-center gap-4">
-                    <img src="{{ Storage::disk('public')->url($user->company_logo_path) }}" alt="Current logo" class="h-12 max-w-[200px] object-contain rounded border border-gray-200 p-1">
+                    <img src="{{ asset('storage/' . $user->company_logo_path) }}" alt="Current logo" class="h-12 max-w-[200px] object-contain rounded border border-gray-200 p-1">
                     <button type="submit" form="remove-logo-form" class="text-sm text-red-600 hover:text-red-800">Remove</button>
                 </div>
             @endif
