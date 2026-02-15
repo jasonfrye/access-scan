@@ -19,6 +19,9 @@
             <a href="#profile-information" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">Profile Information</a>
             <a href="#password" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">Password</a>
             <a href="#api-key" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">API Key</a>
+            @if (auth()->user()->plan === 'agency')
+                <a href="#branding" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">Branding</a>
+            @endif
             <a href="#email-preferences" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">Email Preferences</a>
             <a href="#delete-account" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-200 text-red-600 hover:bg-red-50 transition-colors">Delete Account</a>
         </div>
@@ -41,6 +44,14 @@
                     @include('profile.partials.manage-api-key-form')
                 </div>
             </div>
+
+            @if (auth()->user()->plan === 'agency')
+                <div id="branding" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 scroll-mt-6">
+                    <div class="max-w-xl">
+                        @include('profile.partials.update-branding-form')
+                    </div>
+                </div>
+            @endif
 
             <div id="email-preferences" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 scroll-mt-6">
                 <div class="max-w-xl">

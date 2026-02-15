@@ -33,6 +33,8 @@ class User extends Authenticatable
         'trial_ends_at',
         'marketing_emails_enabled',
         'system_emails_enabled',
+        'company_name',
+        'company_logo_path',
     ];
 
     /**

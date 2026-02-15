@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -56,6 +57,40 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    /**
+     * Update the user's branding settings.
+     */
+    public function updateBranding(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->plan !== 'agency') {
+            abort(403);
+        }
+
+        $request->validate([
+            'company_name' => ['nullable', 'string', 'max:255'],
+            'company_logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:1024'],
+        ]);
+
+        if ($request->boolean('remove_logo') && $user->company_logo_path) {
+            Storage::disk('public')->delete($user->company_logo_path);
+            $user->company_logo_path = null;
+        }
+
+        if ($request->hasFile('company_logo')) {
+            if ($user->company_logo_path) {
+                Storage::disk('public')->delete($user->company_logo_path);
+            }
+            $user->company_logo_path = $request->file('company_logo')->store('logos', 'public');
+        }
+
+        $user->company_name = $request->input('company_name');
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('status', 'branding-updated');
     }
 
     /**

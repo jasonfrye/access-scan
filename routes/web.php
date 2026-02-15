@@ -73,6 +73,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::patch('/profile/email-preferences', [ProfileController::class, 'updateEmailPreferences'])->name('profile.email-preferences.update');
+    Route::put('/profile/branding', [ProfileController::class, 'updateBranding'])->name('profile.branding.update');
+    Route::get('/profile/branding/preview', [ReportController::class, 'preview'])->name('profile.branding.preview');
     Route::post('/profile/api-key/create', [ProfileController::class, 'createApiKey'])->name('profile.api-key.create');
     Route::delete('/profile/api-key/revoke', [ProfileController::class, 'revokeApiKey'])->name('profile.api-key.revoke');
 });

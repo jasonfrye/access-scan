@@ -14,11 +14,23 @@ class ReportService
     public function generatePdf(Scan $scan): string
     {
         $whiteLabel = $scan->user && $scan->user->plan === 'agency';
+        $companyName = $whiteLabel ? $scan->user->company_name : null;
+        $companyLogoBase64 = null;
+
+        if ($whiteLabel && $scan->user->company_logo_path) {
+            $logoPath = Storage::disk('public')->path($scan->user->company_logo_path);
+            if (file_exists($logoPath)) {
+                $mime = mime_content_type($logoPath);
+                $companyLogoBase64 = 'data:'.$mime.';base64,'.base64_encode(file_get_contents($logoPath));
+            }
+        }
 
         $pdf = Pdf::loadView('reports.pdf', [
             'scan' => $scan->load(['pages.issues', 'user']),
             'stats' => $this->calculateStats($scan),
             'whiteLabel' => $whiteLabel,
+            'companyName' => $companyName,
+            'companyLogoBase64' => $companyLogoBase64,
         ]);
 
         $filename = "reports/scan-{$scan->id}-".time().'.pdf';
