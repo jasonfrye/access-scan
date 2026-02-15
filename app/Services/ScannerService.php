@@ -288,7 +288,7 @@ class ScannerService
         }
 
         return sprintf(
-            '%s pa11y %s --standard WCAG2AA --reporter json --timeout %d --config %s',
+            '%s pa11y %s --standard WCAG2AA --reporter json --include-warnings --include-notices --timeout %d --config %s',
             escapeshellarg($npxPath),
             escapeshellarg($url),
             $this->timeout * 1000, // Convert to milliseconds
