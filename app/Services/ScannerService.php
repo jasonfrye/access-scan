@@ -282,7 +282,7 @@ class ScannerService
         if (! file_exists($configPath)) {
             file_put_contents($configPath, json_encode([
                 'chromeLaunchConfig' => [
-                    'args' => ['--no-sandbox', '--disable-setuid-sandbox'],
+                    'args' => ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--single-process'],
                 ],
             ]));
         }
