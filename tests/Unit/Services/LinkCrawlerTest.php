@@ -327,6 +327,42 @@ Disallow: /private/
         $this->assertTrue(true);
     }
 
+    /** @test */
+    public function it_normalizes_trailing_slashes()
+    {
+        $result = $this->invokeProtectedMethod($this->crawler, 'normalizeUrl', ['https://example.com/about/']);
+        $this->assertEquals('https://example.com/about', $result);
+    }
+
+    /** @test */
+    public function it_preserves_root_trailing_slash()
+    {
+        $result = $this->invokeProtectedMethod($this->crawler, 'normalizeUrl', ['https://example.com/']);
+        $this->assertEquals('https://example.com/', $result);
+    }
+
+    /** @test */
+    public function it_strips_fragments_during_normalization()
+    {
+        $result = $this->invokeProtectedMethod($this->crawler, 'normalizeUrl', ['https://example.com/page#section']);
+        $this->assertEquals('https://example.com/page', $result);
+    }
+
+    /** @test */
+    public function it_treats_url_with_and_without_trailing_slash_as_same()
+    {
+        $url1 = $this->invokeProtectedMethod($this->crawler, 'normalizeUrl', ['https://example.com/blog']);
+        $url2 = $this->invokeProtectedMethod($this->crawler, 'normalizeUrl', ['https://example.com/blog/']);
+        $this->assertEquals($url1, $url2);
+    }
+
+    /** @test */
+    public function it_preserves_query_strings_during_normalization()
+    {
+        $result = $this->invokeProtectedMethod($this->crawler, 'normalizeUrl', ['https://example.com/search?q=test']);
+        $this->assertEquals('https://example.com/search?q=test', $result);
+    }
+
     /**
      * Helper method to invoke protected/private methods.
      */
