@@ -276,8 +276,8 @@
                     <a href="{{ route('register') }}" class="block w-full py-2 bg-white text-indigo-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors text-center">Start Free Trial</a>
                 </div>
                 <div class="bg-gray-800 rounded-xl p-6">
-                    <div class="text-sm text-gray-400 mb-2">Lifetime</div>
-                    <div class="text-3xl font-bold mb-4">$197<span class="text-sm font-normal text-gray-400">one-time</span></div>
+                    <div class="text-sm text-gray-400 mb-2">Agency</div>
+                    <div class="text-3xl font-bold mb-4">$99<span class="text-sm font-normal text-gray-400">/mo</span></div>
                     <ul class="space-y-2 text-sm text-gray-300 mb-6">
                         <li class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
@@ -285,14 +285,14 @@
                         </li>
                         <li class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                            Forever access
+                            White-label PDF reports
                         </li>
                         <li class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             Priority support
                         </li>
                     </ul>
-                    <a href="{{ route('register') }}" class="block w-full py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors text-center">Get Lifetime</a>
+                    <a href="{{ route('register') }}" class="block w-full py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors text-center">Get Agency</a>
                 </div>
             </div>
         </div>

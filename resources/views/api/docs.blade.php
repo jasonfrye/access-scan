@@ -219,7 +219,7 @@
                                 <td class="px-3 py-2">300</td>
                             </tr>
                             <tr>
-                                <td class="px-3 py-2">Lifetime</td>
+                                <td class="px-3 py-2">Agency</td>
                                 <td class="px-3 py-2">Unlimited</td>
                                 <td class="px-3 py-2">1,000</td>
                             </tr>
