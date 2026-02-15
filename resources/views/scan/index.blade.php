@@ -273,7 +273,7 @@
                             PDF export
                         </li>
                     </ul>
-                    <a href="{{ route('register') }}" class="block w-full py-2 bg-white text-indigo-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors text-center">Start Free Trial</a>
+                    <a href="{{ route('register') }}" class="block w-full py-2 bg-white text-indigo-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors text-center">Get Started</a>
                 </div>
                 <div class="bg-gray-800 rounded-xl p-6">
                     <div class="text-sm text-gray-400 mb-2">Agency</div>
